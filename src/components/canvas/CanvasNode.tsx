@@ -33,15 +33,16 @@ function CanvasNodeBase({
   showPixelGrid = false,
 }: CanvasNodeProps) {
   const document = useEditorStore((s) => s.document)
-  const selectedId = useEditorStore((s) => s.selectedId)
+  const selectedIds = useEditorStore((s) => s.selectedIds)
   const selectNode = useEditorStore((s) => s.selectNode)
+  const toggleNodeSelection = useEditorStore((s) => s.toggleNodeSelection)
   const updateCanvasRect = useEditorStore((s) => s.updateCanvasRect)
   const setGuides = useSnapStore((s) => s.setGuides)
   const clearGuides = useSnapStore((s) => s.clearGuides)
 
   const node = document.nodes[nodeId]
   const canvas = document.canvas[nodeId]
-  const isSelected = selectedId === nodeId
+  const isSelected = selectedIds.includes(nodeId)
 
   // 拖拽起点引用
   const dragRef = useRef<{
@@ -57,6 +58,10 @@ function CanvasNodeBase({
     (e: React.PointerEvent, mode: "move" | ResizeDir) => {
       e.stopPropagation()
       e.preventDefault()
+      if (e.altKey && mode === "move") {
+        toggleNodeSelection(nodeId)
+        return
+      }
       selectNode(nodeId)
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
 
@@ -138,7 +143,7 @@ function CanvasNodeBase({
       window.addEventListener("pointermove", handleMove)
       window.addEventListener("pointerup", handleUp)
     },
-    [document, node, nodeId, selectNode, updateCanvasRect, setGuides, clearGuides, zoom, snapToComponents, snapToPixelGrid],
+    [document, node, nodeId, selectNode, toggleNodeSelection, updateCanvasRect, setGuides, clearGuides, zoom, snapToComponents, snapToPixelGrid],
   )
 
   if (!node || !canvas) return null

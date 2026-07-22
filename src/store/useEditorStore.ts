@@ -33,6 +33,7 @@ interface EditorState {
   document: XuanDocument
   mode: EditorMode
   selectedId: string | null
+  selectedIds: string[]
   /** 正在重命名的节点 ID（IA 内联编辑） */
   renamingId: string | null
   history: History<XuanDocument>
@@ -42,6 +43,7 @@ interface EditorState {
   /* ---- 模式与选择 ---- */
   setMode: (mode: EditorMode) => void
   selectNode: (id: string | null) => void
+  toggleNodeSelection: (id: string) => void
   setRenaming: (id: string | null) => void
 
   /* ---- 页面管理 ---- */
@@ -53,6 +55,7 @@ interface EditorState {
   /* ---- 节点增删改（可撤销）---- */
   addNode: (parentId: string, name: string, role?: string) => string
   removeNode: (id: string) => void
+  removeNodes: (ids: string[]) => void
   renameNode: (id: string, name: string) => void
   setRole: (id: string, role: string) => void
   setComponent: (
@@ -88,9 +91,10 @@ function commit(
 ): void {
   const state = get()
   const next = state.history.commit(state.document, mutator)
-  set({ document: next })
-  // 同步回 pages
-  state.pages[state.activePageId] = next
+  set({
+    document: next,
+    pages: { ...state.pages, [state.activePageId]: next },
+  })
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -106,6 +110,7 @@ export const useEditorStore = create<EditorState>()(
         document: initialDoc,
         mode: "mindmap",
         selectedId: initialDoc.rootId,
+        selectedIds: [initialDoc.rootId],
         renamingId: null,
         history: new History(),
         clipboard: null,
@@ -116,19 +121,35 @@ export const useEditorStore = create<EditorState>()(
             // 切到 Canvas 时自动放置未定位节点
             const state = get()
             const materialized = materializeDocument(state.document)
-            commit(get, set, () => {})
-            // materialize 已经是新 doc，直接替换
             const next = state.history.commit(state.document, (draft) => {
               Object.assign(draft, materialized)
             })
-            set({ document: next, mode })
-            state.pages[state.activePageId] = next
+            set({
+              document: next,
+              pages: { ...state.pages, [state.activePageId]: next },
+              mode,
+            })
           } else {
             set({ mode })
           }
         },
 
-        selectNode: (id) => set({ selectedId: id, renamingId: null }),
+        selectNode: (id) =>
+          set({ selectedId: id, selectedIds: id ? [id] : [], renamingId: null }),
+
+        toggleNodeSelection: (id) => {
+          const state = get()
+          const selectedIds = state.selectedIds.includes(id)
+            ? state.selectedIds.filter((selectedId) => selectedId !== id)
+            : [...state.selectedIds, id]
+          set({
+            selectedIds,
+            selectedId: selectedIds.includes(id)
+              ? id
+              : selectedIds[selectedIds.length - 1] ?? null,
+            renamingId: null,
+          })
+        },
 
         setRenaming: (id) => set({ renamingId: id }),
 
@@ -144,6 +165,7 @@ export const useEditorStore = create<EditorState>()(
             activePageId: id,
             document: doc,
             selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
             history: new History(),
           })
         },
@@ -156,6 +178,7 @@ export const useEditorStore = create<EditorState>()(
             activePageId: id,
             document: doc,
             selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
             history: new History(),
           })
         },
@@ -173,6 +196,7 @@ export const useEditorStore = create<EditorState>()(
             activePageId: nextActive,
             document: doc,
             selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
             history: new History(),
           })
         },
@@ -206,29 +230,40 @@ export const useEditorStore = create<EditorState>()(
             }
             draft.mindmap[id] = { collapsed: false }
           })
-          set({ selectedId: id })
+          set({ selectedId: id, selectedIds: [id] })
           return id
         },
 
-        removeNode: (id) => {
+        removeNode: (id) => get().removeNodes([id]),
+
+        removeNodes: (ids) => {
           const state = get()
-          if (id === state.document.rootId) return
+          const removableIds = ids.filter(
+            (id) =>
+              id !== state.document.rootId &&
+              state.document.nodes[id] &&
+              !ids.some(
+                (ancestorId) =>
+                  ancestorId !== id &&
+                  isDescendant(state.document, ancestorId, id),
+              ),
+          )
+          if (removableIds.length === 0) return
           commit(get, set, (draft) => {
-            const node = draft.nodes[id]
-            if (!node?.parentId) return
-            // 收集所有后代 ID
-            const toDelete = collectDescendants(draft, id, true)
-            // 从父节点的 childrenIds 移除
-            const parent = draft.nodes[node.parentId]
-            parent.childrenIds = parent.childrenIds.filter((cid) => cid !== id)
-            // 删除所有节点和侧表
-            toDelete.forEach((did) => {
-              delete draft.nodes[did]
-              delete draft.canvas[did]
-              delete draft.mindmap[did]
+            removableIds.forEach((id) => {
+              const node = draft.nodes[id]
+              if (!node?.parentId) return
+              const toDelete = collectDescendants(draft, id, true)
+              const parent = draft.nodes[node.parentId]
+              parent.childrenIds = parent.childrenIds.filter((cid) => cid !== id)
+              toDelete.forEach((deletedId) => {
+                delete draft.nodes[deletedId]
+                delete draft.canvas[deletedId]
+                delete draft.mindmap[deletedId]
+              })
             })
           })
-          set({ selectedId: null })
+          set({ selectedId: null, selectedIds: [] })
         },
 
         renameNode: (id, name) => {
@@ -383,7 +418,7 @@ export const useEditorStore = create<EditorState>()(
             }
             insert(clip, parentId, newId)
           })
-          set({ selectedId: newId })
+          set({ selectedId: newId, selectedIds: [newId] })
           return newId
         },
 
@@ -404,6 +439,7 @@ export const useEditorStore = create<EditorState>()(
             pages,
             document: doc,
             selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
             history: new History(),
           })
         },
@@ -412,14 +448,18 @@ export const useEditorStore = create<EditorState>()(
         undo: () => {
           const state = get()
           const prev = state.history.undo(state.document)
-          set({ document: prev })
-          state.pages[state.activePageId] = prev
+          set({
+            document: prev,
+            pages: { ...state.pages, [state.activePageId]: prev },
+          })
         },
         redo: () => {
           const state = get()
           const next = state.history.redo(state.document)
-          set({ document: next })
-          state.pages[state.activePageId] = next
+          set({
+            document: next,
+            pages: { ...state.pages, [state.activePageId]: next },
+          })
         },
       }
     },
@@ -439,6 +479,7 @@ export const useEditorStore = create<EditorState>()(
           activePageId: p.activePageId,
           document: p.pages[p.activePageId],
           selectedId: p.pages[p.activePageId].rootId,
+          selectedIds: [p.pages[p.activePageId].rootId],
           history: new History(),
         }
       },

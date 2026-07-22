@@ -31,6 +31,8 @@ export function CanvasEditor() {
   const selectNode = useEditorStore((s) => s.selectNode)
   const addNode = useEditorStore((s) => s.addNode)
   const updateCanvasData = useEditorStore((s) => s.updateCanvasData)
+  const selectedIds = useEditorStore((s) => s.selectedIds)
+  const removeNodes = useEditorStore((s) => s.removeNodes)
   const rootId = document.rootId
   const rootCanvas = document.canvas[rootId]
   const viewport = document.meta.viewport
@@ -65,6 +67,25 @@ export function CanvasEditor() {
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
   }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return
+      }
+      if ((event.key === "Backspace" || event.key === "Delete") && selectedIds.length > 0) {
+        event.preventDefault()
+        removeNodes(selectedIds)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [removeNodes, selectedIds])
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {

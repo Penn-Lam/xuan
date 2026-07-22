@@ -1,6 +1,6 @@
 // ============================================================
 //  useMindmapKeyboard —— IA 模式键盘快捷键
-//  Tab=加子节点 / Enter/F2=重命名 / Delete=删分支
+//  Tab=加子节点 / Enter=加同级节点 / F2=重命名 / Delete=删分支
 //  方向键=导航 / Cmd+Z=撤销 / Cmd+C/V=复制粘贴 / Cmd+D=复制
 // ============================================================
 import { useEffect } from "react"
@@ -21,8 +21,6 @@ export function useMindmapKeyboard(): void {
   const setRenaming = useEditorStore((s) => s.setRenaming)
   const addNode = useEditorStore((s) => s.addNode)
   const removeNode = useEditorStore((s) => s.removeNode)
-  const undo = useEditorStore((s) => s.undo)
-  const redo = useEditorStore((s) => s.redo)
   const copySubtree = useEditorStore((s) => s.copySubtree)
   const pasteSubtree = useEditorStore((s) => s.pasteSubtree)
   const duplicateNode = useEditorStore((s) => s.duplicateNode)
@@ -47,15 +45,6 @@ export function useMindmapKeyboard(): void {
       // Cmd/Ctrl 系列
       if (mod) {
         switch (e.key.toLowerCase()) {
-          case "z":
-            e.preventDefault()
-            if (e.shiftKey) redo()
-            else undo()
-            return
-          case "y":
-            e.preventDefault()
-            redo()
-            return
           case "c":
             if (selectedId) {
               e.preventDefault()
@@ -89,6 +78,16 @@ export function useMindmapKeyboard(): void {
           return
 
         case "Enter":
+          e.preventDefault()
+          if (document.nodes[selectedId]?.parentId) {
+            addNode(
+              document.nodes[selectedId].parentId,
+              "New Section",
+              document.nodes[selectedId].role,
+            )
+          }
+          return
+
         case "F2":
           e.preventDefault()
           if (selectedId !== rootId) setRenaming(selectedId)
@@ -135,8 +134,6 @@ export function useMindmapKeyboard(): void {
     setRenaming,
     addNode,
     removeNode,
-    undo,
-    redo,
     copySubtree,
     pasteSubtree,
     duplicateNode,
