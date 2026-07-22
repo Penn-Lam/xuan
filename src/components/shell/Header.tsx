@@ -37,6 +37,7 @@ import { Separator } from "@/components/ui/separator"
 import { buildGenerationPrompt } from "@/prompts/generation"
 import { useI18n } from "@/lib/i18n"
 import type { Locale } from "@/lib/i18n-messages"
+import { websiteConfig } from "@/config/website"
 import { PageMenu } from "./PageMenu"
 
 export function Header() {
@@ -104,7 +105,17 @@ export function Header() {
     <header className="flex h-14 items-center gap-2 border-b bg-background px-4">
       {/* 左：页面切换 + 页面名称 */}
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <img src="/logo.png" alt="宣" className="size-7 shrink-0 object-contain" />
+        <img
+          src={websiteConfig.metadata.images.logoLight}
+          alt="宣"
+          className="size-7 shrink-0 object-contain dark:hidden"
+        />
+        <img
+          src={websiteConfig.metadata.images.logoDark}
+          alt=""
+          aria-hidden="true"
+          className="hidden size-7 shrink-0 object-contain dark:block"
+        />
         <PageMenu />
         <Input
           value={document.meta.name}
