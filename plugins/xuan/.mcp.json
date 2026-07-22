@@ -2,10 +2,9 @@
   "mcpServers": {
     "xuan": {
       "command": "node",
-      "args": ["./mcp/server.mjs"],
+      "args": ["./mcp/generated/server.bundle.mjs"],
       "cwd": ".",
       "tool_timeout_sec": 120
     }
   }
 }
-

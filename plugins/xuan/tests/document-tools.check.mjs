@@ -114,7 +114,7 @@ try {
   const client = new Client({ name: "xuan-test", version: "0.1.0" })
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [path.resolve("plugins/xuan/mcp/server.mjs")],
+    args: [path.resolve("plugins/xuan/mcp/generated/server.bundle.mjs")],
   })
   await client.connect(transport)
   const tools = await client.listTools()
