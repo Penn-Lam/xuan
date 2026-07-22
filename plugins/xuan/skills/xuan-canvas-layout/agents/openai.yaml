@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xuan Canvas Layout"
+  short_description: "Lay out and bind prototype components"
+  default_prompt: "Lay out the current IA on Xuan Canvas."

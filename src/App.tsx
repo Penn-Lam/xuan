@@ -10,8 +10,10 @@ import { CanvasEditor } from "@/components/canvas/CanvasEditor"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { Toaster } from "@/components/ui/sonner"
 import { useI18n } from "@/lib/i18n"
+import { useAgentDocumentSync } from "@/lib/use-agent-document-sync"
 
 export default function App() {
+  useAgentDocumentSync()
   const mode = useEditorStore((s) => s.mode)
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)

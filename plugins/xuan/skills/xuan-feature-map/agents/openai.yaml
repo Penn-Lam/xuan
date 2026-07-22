@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xuan Feature Map"
+  short_description: "Map pains to modules and prioritized features"
+  default_prompt: "Turn my notes into a Feature Map."

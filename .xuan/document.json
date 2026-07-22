@@ -1,0 +1,325 @@
+{
+  "version": "2.0",
+  "meta": {
+    "name": "Operations Dashboard",
+    "designSystem": "shadcn/ui@latest",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "tree": {
+    "id": "node_root",
+    "name": "Dashboard Page",
+    "role": "page",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    "shape": "rectangle",
+    "component": null,
+    "content": null,
+    "children": [
+      {
+        "id": "node_sidebar",
+        "name": "Sidebar Navigation",
+        "role": "navigation",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 240,
+          "h": 900
+        },
+        "shape": "rectangle",
+        "component": {
+          "ref": "Sidebar",
+          "props": {
+            "collapsible": "icon"
+          }
+        },
+        "content": null,
+        "children": [
+          {
+            "id": "node_brand",
+            "name": "Acme Analytics",
+            "role": "branding",
+            "rect": {
+              "x": 16,
+              "y": 16,
+              "w": 208,
+              "h": 48
+            },
+            "shape": "text",
+            "component": null,
+            "content": {
+              "text": "Acme Analytics"
+            },
+            "children": []
+          },
+          {
+            "id": "node_menu",
+            "name": "Main Menu",
+            "role": "navigation",
+            "rect": {
+              "x": 16,
+              "y": 80,
+              "w": 208,
+              "h": 620
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarMenu",
+              "props": {}
+            },
+            "content": {
+              "items": [
+                "Overview",
+                "Orders",
+                "Products",
+                "Customers",
+                "Settings"
+              ]
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "node_main",
+        "name": "Main Content",
+        "role": "main",
+        "rect": {
+          "x": 240,
+          "y": 0,
+          "w": 1200,
+          "h": 900
+        },
+        "shape": "rectangle",
+        "component": null,
+        "content": null,
+        "children": [
+          {
+            "id": "node_header",
+            "name": "Top Bar",
+            "role": "header",
+            "rect": {
+              "x": 240,
+              "y": 0,
+              "w": 1200,
+              "h": 72
+            },
+            "shape": "rectangle",
+            "component": null,
+            "content": null,
+            "children": [
+              {
+                "id": "node_title",
+                "name": "Operations Overview",
+                "role": "heading",
+                "rect": {
+                  "x": 264,
+                  "y": 20,
+                  "w": 220,
+                  "h": 32
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "Operations Overview"
+                },
+                "children": []
+              },
+              {
+                "id": "node_search",
+                "name": "Global Search",
+                "role": "search",
+                "rect": {
+                  "x": 1000,
+                  "y": 18,
+                  "w": 280,
+                  "h": 36
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Input",
+                  "props": {
+                    "placeholder": "Search orders, products..."
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_export",
+                "name": "Export Report",
+                "role": "cta",
+                "rect": {
+                  "x": 1300,
+                  "y": 18,
+                  "w": 116,
+                  "h": 36
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Button",
+                  "props": {
+                    "variant": "outline"
+                  }
+                },
+                "content": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_stats",
+            "name": "Key Metrics",
+            "role": "stats",
+            "rect": {
+              "x": 264,
+              "y": 96,
+              "w": 1152,
+              "h": 150
+            },
+            "shape": "rectangle",
+            "component": null,
+            "content": null,
+            "children": [
+              {
+                "id": "node_stat_0",
+                "name": "Total Revenue",
+                "role": "stat-card",
+                "rect": {
+                  "x": 264,
+                  "y": 96,
+                  "w": 272,
+                  "h": 150
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Card",
+                  "props": {}
+                },
+                "content": {
+                  "label": "Total Revenue",
+                  "value": "$128,420"
+                },
+                "children": []
+              },
+              {
+                "id": "node_stat_1",
+                "name": "Orders",
+                "role": "stat-card",
+                "rect": {
+                  "x": 552,
+                  "y": 96,
+                  "w": 272,
+                  "h": 150
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Card",
+                  "props": {}
+                },
+                "content": {
+                  "label": "Orders",
+                  "value": "2,846"
+                },
+                "children": []
+              },
+              {
+                "id": "node_stat_2",
+                "name": "Average Order Value",
+                "role": "stat-card",
+                "rect": {
+                  "x": 840,
+                  "y": 96,
+                  "w": 272,
+                  "h": 150
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Card",
+                  "props": {}
+                },
+                "content": {
+                  "label": "Average Order Value",
+                  "value": "$451"
+                },
+                "children": []
+              },
+              {
+                "id": "node_stat_3",
+                "name": "Conversion Rate",
+                "role": "stat-card",
+                "rect": {
+                  "x": 1128,
+                  "y": 96,
+                  "w": 272,
+                  "h": 150
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Card",
+                  "props": {}
+                },
+                "content": {
+                  "label": "Conversion Rate",
+                  "value": "4.8%"
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_chart",
+            "name": "Revenue Trend",
+            "role": "chart",
+            "rect": {
+              "x": 264,
+              "y": 270,
+              "w": 720,
+              "h": 280
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "ChartContainer",
+              "props": {}
+            },
+            "content": {
+              "range": "Last 30 days",
+              "series": [
+                "Revenue",
+                "Orders"
+              ]
+            },
+            "children": []
+          },
+          {
+            "id": "node_orders",
+            "name": "Recent Orders",
+            "role": "data-table",
+            "rect": {
+              "x": 264,
+              "y": 574,
+              "w": 1152,
+              "h": 286
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "Table",
+              "props": {}
+            },
+            "content": {
+              "itemCount": 8,
+              "itemRole": "order-row"
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

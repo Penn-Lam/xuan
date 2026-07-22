@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xuan"
+  short_description: "Route schema-first prototyping workflows"
+  default_prompt: "Create or continue a schema-first Xuan prototype."

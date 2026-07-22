@@ -1,0 +1,25 @@
+{
+  "name": "xuan",
+  "version": "0.1.0",
+  "description": "Schema-first prototyping from feature maps to IA and layout.",
+  "author": {
+    "name": "Xuan"
+  },
+  "license": "MIT",
+  "keywords": ["prototype", "information-architecture", "canvas", "shadcn"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Xuan",
+    "shortDescription": "Start with a feature, then shape IA and layout",
+    "longDescription": "Xuan turns vague product input into a Feature Map, builds information architecture as a mind map, then lays out and binds shadcn/ui components on Canvas.",
+    "developerName": "Xuan",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Create or continue a Xuan schema-first prototype for the current project."],
+    "brandColor": "#171717",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  },
+  "mcpServers": "./.mcp.json"
+}
+

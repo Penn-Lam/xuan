@@ -159,6 +159,10 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# Xuan runtime coordination files
+.xuan/.document.lock
+.xuan/mutations.json
+
 # yarn v2
 .yarn/cache
 .yarn/unplugged
@@ -182,7 +186,7 @@ dist
 node_modules
 .tmp
 # bun
-bun.lock
+# Keep bun.lock committed for reproducible installs.
 # vite
 .vite
 # env

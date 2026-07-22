@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xuan IA Writer"
+  short_description: "Build prototype information architecture"
+  default_prompt: "Build the IA from the current Feature Map."
