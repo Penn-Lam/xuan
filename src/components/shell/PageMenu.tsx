@@ -3,7 +3,7 @@
 // ============================================================
 import { Plus, File, Trash } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import {
   DropdownMenu,
   DropdownMenuContent,

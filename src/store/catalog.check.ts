@@ -6,7 +6,7 @@ import {
   getContentFields,
   getPropFields,
 } from "./catalog"
-import { translate } from "../lib/i18n"
+import { translate } from "../lib/i18n-messages"
 
 assert.equal(translate("zh", "Theme"), "主题")
 assert.equal(translate("en", "Theme"), "Theme")

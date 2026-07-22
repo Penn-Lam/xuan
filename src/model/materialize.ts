@@ -17,13 +17,6 @@ export function materializeDocument(doc: XuanDocument): XuanDocument {
   })
 }
 
-/** 对单个子树重新自动布局（强制重新放置该分支） */
-export function materializeSubtree(doc: XuanDocument, rootId: string): XuanDocument {
-  return produce(doc, (draft) => {
-    walkMaterialize(draft, rootId)
-  })
-}
-
 /** 递归放置某容器的未放置子节点 */
 function walkMaterialize(doc: XuanDocument, containerId: string): void {
   const container = doc.nodes[containerId]

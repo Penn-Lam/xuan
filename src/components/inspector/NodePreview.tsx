@@ -44,7 +44,10 @@ function listValue(value: unknown, fallback: string[] = []): string[] {
 }
 
 function renderSidebar(node: FlatNode, document: XuanDocument, t: Translate) {
-  const childNodes = node.childrenIds.map((id) => document.nodes[id]).filter(Boolean)
+  const childNodes = node.childrenIds.flatMap((id) => {
+    const child = document.nodes[id]
+    return child ? [child] : []
+  })
   const branding = childNodes.find((child) => child.role === "branding")
   const menu = childNodes.find(
     (child) => child.component?.ref === "SidebarMenu" || child.role === "navigation",

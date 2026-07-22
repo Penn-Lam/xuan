@@ -68,13 +68,6 @@ export function siblings(doc: XuanDocument, id: string): string[] {
   return doc.nodes[node.parentId].childrenIds
 }
 
-/** 获取节点在父级 childrenIds 中的索引 */
-export function childIndex(doc: XuanDocument, id: string): number {
-  const node = doc.nodes[id]
-  if (!node?.parentId) return 0
-  return doc.nodes[node.parentId].childrenIds.indexOf(id)
-}
-
 /* ----------------------- 树形导航（方向键） ----------------------- */
 
 /** 导航目标 ID（不修改文档） */

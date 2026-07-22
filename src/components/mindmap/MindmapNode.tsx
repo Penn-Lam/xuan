@@ -86,6 +86,7 @@ function MindmapNodeBase({ data, selected }: MindmapNodeProps) {
         </Badge>
         {d.childCount > 0 && (
           <button
+            type="button"
             className="flex h-4 w-4 items-center justify-center rounded-full border bg-background text-xs text-muted-foreground hover:bg-accent"
             onClick={(e) => {
               e.stopPropagation()

@@ -101,6 +101,7 @@ export function BasicsSection() {
                 const isActive = document.meta.viewport.width === p.width
                 return (
                   <button
+                    type="button"
                     key={p.id}
                     title={`${t(p.label)} (${p.width}×${p.height})`}
                     onClick={() =>

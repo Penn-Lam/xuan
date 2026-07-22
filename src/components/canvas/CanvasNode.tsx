@@ -69,11 +69,12 @@ function CanvasNodeBase({
       const parent = node.parentId ? absoluteRect(document, node.parentId) : rect
 
       // 收集兄弟节点的绝对坐标（排除自身）用于吸附
-      const siblingRects: Rect[] = node.parentId
-        ? document.nodes[node.parentId].childrenIds
-            .filter((cid) => cid !== nodeId)
-            .map((cid) => absoluteRect(document, cid))
-        : []
+      const siblingRects: Rect[] = []
+      if (node.parentId) {
+        for (const cid of document.nodes[node.parentId].childrenIds) {
+          if (cid !== nodeId) siblingRects.push(absoluteRect(document, cid))
+        }
+      }
 
       dragRef.current = {
         startX: e.clientX,

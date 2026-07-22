@@ -22,7 +22,8 @@ import { toast } from "sonner"
 import { useEditorStore } from "@/store/useEditorStore"
 import { serializeDocument } from "@/model/serialize"
 import { importFromJson } from "@/model/deserialize"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -34,7 +35,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { buildGenerationPrompt } from "@/prompts/generation"
-import { useI18n, type Locale } from "@/lib/i18n"
+import { useI18n } from "@/lib/i18n"
+import type { Locale } from "@/lib/i18n-messages"
 import { PageMenu } from "./PageMenu"
 
 export function Header() {
