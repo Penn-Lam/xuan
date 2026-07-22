@@ -41,7 +41,7 @@ export default function App() {
   }, [redo, undo])
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-muted/40 text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-muted/40 text-foreground">
       <Header />
       <main className="grid flex-1 grid-cols-[minmax(0,1fr)_292px] overflow-hidden">
         <div className="relative overflow-hidden">

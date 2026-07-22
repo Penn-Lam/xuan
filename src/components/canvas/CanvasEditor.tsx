@@ -185,6 +185,9 @@ export function CanvasEditor() {
   return (
     <div
       ref={containerRef}
+      role="application"
+      tabIndex={0}
+      aria-label={t("Workspace")}
       className="canvas-workspace relative h-full w-full overflow-hidden bg-muted/30"
       style={{ cursor: tool === "select" ? "grab" : "crosshair" }}
       onPointerDown={(e) => {
@@ -197,6 +200,9 @@ export function CanvasEditor() {
         handleDrawPointerUp(e)
       }}
       onClick={handleBackgroundClick}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") handleBackgroundClick()
+      }}
     >
       <TooltipProvider>
         <div className="pointer-events-auto absolute left-3 top-3 z-10 flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
@@ -252,8 +258,8 @@ export function CanvasEditor() {
           )}
 
           {/* 吸附辅助线层 */}
-          {guides.map((g, i) => (
-            <SnapGuideLine key={i} guide={g} viewport={viewport} />
+          {guides.map((guide) => (
+            <SnapGuideLine key={guide.orientation} guide={guide} viewport={viewport} />
           ))}
 
         </div>
