@@ -4,7 +4,7 @@
 //  JSON = 可编辑 textarea（原始 JSON 文本，Geist Mono，实时校验）
 //  ComponentSection 的 Props 和 ContentSection 都复用此组件
 // ============================================================
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/lib/i18n"
@@ -42,7 +42,7 @@ export function FieldViewTabs({
           />
         </TabsContent>
         <TabsContent value="json" className="mt-2">
-          <JsonTextarea value={value} onChange={onChange} />
+          <JsonTextarea key={JSON.stringify(value)} value={value} onChange={onChange} />
         </TabsContent>
       </Tabs>
     </div>
@@ -57,14 +57,8 @@ function JsonTextarea({
   value: Record<string, unknown>
   onChange: (value: Record<string, unknown>) => void
 }) {
-  const [draft, setDraft] = useState("")
+  const [draft, setDraft] = useState(() => JSON.stringify(value, null, 2))
   const [error, setError] = useState<string | null>(null)
-
-  // 父级 value 变化时（如 Form 视图编辑、切换节点）同步草稿
-  useEffect(() => {
-    setDraft(JSON.stringify(value, null, 2))
-    setError(null)
-  }, [value])
 
   const commit = () => {
     const trimmed = draft.trim()
