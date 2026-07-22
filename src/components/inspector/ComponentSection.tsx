@@ -19,8 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SemanticFieldsEditor } from "./SemanticFieldsEditor"
+import { HelpTooltip } from "./HelpTooltip"
+import { useI18n } from "@/lib/i18n"
 
 export function ComponentSection() {
+  const { t } = useI18n()
   const selectedId = useEditorStore((s) => s.selectedId)
   const document = useEditorStore((s) => s.document)
   const setComponent = useEditorStore((s) => s.setComponent)
@@ -38,20 +41,29 @@ export function ComponentSection() {
 
   return (
     <section className="border-b p-4">
-      <h3 className="mb-3 text-sm font-semibold">Component</h3>
+      <h3 className="mb-3 text-sm font-semibold">{t("Component")}</h3>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-muted-foreground">Component type</Label>
+          <div className="flex items-center gap-1">
+            <Label className="text-xs text-muted-foreground">{t("Component type")}</Label>
+            <HelpTooltip
+              content={component
+                ? t(COMPONENT_CATALOG[component.ref]?.description ?? "Custom component")
+                : t("Unbound nodes use their semantic role.")}
+            />
+          </div>
           <div className="flex items-center gap-1.5">
             <Select value={component?.ref ?? ""} onValueChange={(ref) => ref && bindComponent(ref)}>
               <SelectTrigger className="h-8 flex-1">
-                <SelectValue placeholder="Select a component…" />
+                <SelectValue placeholder={t("Select a component…")}>
+                  {component ? t(component.ref) : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   {COMPONENTS.map((ref) => (
                     <SelectItem key={ref} value={ref}>
-                      {ref}
+                      {t(ref)}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -62,28 +74,25 @@ export function ComponentSection() {
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => setComponent(selectedId, null)}
-                aria-label="Unbind component"
+                aria-label={t("Unbind component")}
               >
                 <X />
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            {component
-              ? COMPONENT_CATALOG[component.ref]?.description ?? "Custom component"
-              : "Unbound nodes use their semantic role."}
-          </p>
         </div>
 
         {component && (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Props</Label>
+            <div className="flex items-center gap-1">
+              <Label className="text-xs text-muted-foreground">{t("Props")}</Label>
+              <HelpTooltip content={t("Add only the behavior or appearance props this component needs.")} />
+            </div>
             <SemanticFieldsEditor
               key={`${selectedId}:${component.ref}`}
               definitions={getPropFields(component.ref)}
               value={component.props}
               onChange={(props) => setComponent(selectedId, { ...component, props })}
-              emptyMessage="Add only the behavior or appearance props this component needs."
               fieldKind="prop"
             />
           </div>

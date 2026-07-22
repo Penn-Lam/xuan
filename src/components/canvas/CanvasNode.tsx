@@ -159,10 +159,10 @@ function CanvasNodeBase({
   return (
     <div
       className={cn(
-        "canvas-node absolute select-none border bg-[#eef1f5b8] transition-colors",
+        "canvas-node absolute select-none border bg-secondary/70 transition-colors",
         !node.parentId && showPixelGrid && "canvas-grid-bg",
         shapeClass,
-        isSelected ? "border-primary ring-2 ring-ring/50" : "border-[#aeb7c5]",
+        isSelected ? "border-primary ring-2 ring-ring/50" : "border-border",
       )}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
       onPointerDown={(e) => handlePointerDown(e, "move")}

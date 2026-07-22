@@ -11,12 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { SemanticField, SemanticFieldType } from "@/store/catalog"
+import { useI18n } from "@/lib/i18n"
 
 interface SemanticFieldsEditorProps {
   definitions: SemanticField[]
   value: Record<string, unknown>
   onChange: (value: Record<string, unknown>) => void
-  emptyMessage: string
   fieldKind: "prop" | "content"
 }
 
@@ -95,9 +95,9 @@ export function SemanticFieldsEditor({
   definitions,
   value,
   onChange,
-  emptyMessage,
   fieldKind,
 }: SemanticFieldsEditorProps) {
+  const { t } = useI18n()
   const [draftField, setDraftField] = useState("")
   const [draftValue, setDraftValue] = useState("")
   const entries = Object.entries(value)
@@ -140,10 +140,6 @@ export function SemanticFieldsEditor({
 
   return (
     <div className="flex flex-col gap-2">
-      {entries.length === 0 && (
-        <p className="text-xs text-muted-foreground">{emptyMessage}</p>
-      )}
-
       {entries.map(([key, currentValue]) => {
         const definition = definitionFor(key, currentValue)
         const formattedValue = formatValue(currentValue)
@@ -159,7 +155,7 @@ export function SemanticFieldsEditor({
               <SelectTrigger
                 size="sm"
                 className="w-[42%]"
-                aria-label={`${definition.label} ${fieldKind}`}
+                aria-label={`${t(definition.label)} ${t(fieldKind)}`}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -167,7 +163,7 @@ export function SemanticFieldsEditor({
                 <SelectGroup>
                   {options.map((field) => (
                     <SelectItem key={field.key} value={field.key}>
-                      {field.label}
+                      {t(field.label)}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -181,13 +177,13 @@ export function SemanticFieldsEditor({
                 if (nextValue !== formattedValue) updateField(key, nextValue)
               }}
               commitOnBlur={!definition.options}
-              ariaLabel={`${definition.label} value`}
+              ariaLabel={`${t(definition.label)} ${t("Value")}`}
             />
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => removeField(key)}
-              aria-label={`Remove ${definition.label}`}
+              aria-label={`${t("Remove")} ${t(definition.label)}`}
             >
               <X />
             </Button>
@@ -200,15 +196,15 @@ export function SemanticFieldsEditor({
           <SelectTrigger
             size="sm"
             className="w-[42%]"
-            aria-label={`Add ${fieldKind} field`}
+            aria-label={`${t("Add")} ${t(fieldKind)}`}
           >
-            <SelectValue placeholder="Add field…" />
+            <SelectValue placeholder={t("Add field…")} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               {availableFields.map((field) => (
                 <SelectItem key={field.key} value={field.key}>
-                  {field.label}
+                  {t(field.label)}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -219,14 +215,14 @@ export function SemanticFieldsEditor({
           value={draftValue}
           onChange={setDraftValue}
           onEnter={addField}
-          ariaLabel="New field value"
+          ariaLabel={t("New field value")}
         />
         <Button
           variant="outline"
           size="icon-sm"
           onClick={addField}
           disabled={!draftField}
-          aria-label="Add field"
+          aria-label={t("Add field")}
         >
           <Plus />
         </Button>

@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useI18n } from "@/lib/i18n"
 
 /** 页面尺寸预设图标 */
 const PRESET_ICONS = {
@@ -25,6 +26,7 @@ const PRESET_ICONS = {
 } as const
 
 export function BasicsSection() {
+  const { t } = useI18n()
   const selectedId = useEditorStore((s) => s.selectedId)
   const document = useEditorStore((s) => s.document)
   const renameNode = useEditorStore((s) => s.renameNode)
@@ -39,11 +41,11 @@ export function BasicsSection() {
 
   return (
     <section className="border-b p-4">
-      <h3 className="mb-3 text-sm font-semibold">Basics</h3>
+      <h3 className="mb-3 text-sm font-semibold">{t("Basics")}</h3>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="insp-name" className="text-xs text-muted-foreground">
-            Name
+            {t("Name")}
           </Label>
           <Input
             id="insp-name"
@@ -54,16 +56,16 @@ export function BasicsSection() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-muted-foreground">Role</Label>
+          <Label className="text-xs text-muted-foreground">{t("Role")}</Label>
           <Select value={node.role} onValueChange={(v) => { if (v) setRole(selectedId, v) }}>
             <SelectTrigger className="h-8">
-              <SelectValue />
+              <SelectValue>{t(node.role)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {ROLES.map((r) => (
                   <SelectItem key={r} value={r}>
-                    {r}
+                    {t(r)}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -72,7 +74,7 @@ export function BasicsSection() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-muted-foreground">Shape</Label>
+          <Label className="text-xs text-muted-foreground">{t("Shape")}</Label>
           <Select
             value={canvas.shape}
             onValueChange={(v) =>
@@ -83,16 +85,16 @@ export function BasicsSection() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rectangle">Rectangle</SelectItem>
-              <SelectItem value="ellipse">Ellipse</SelectItem>
-              <SelectItem value="text">Text</SelectItem>
+              <SelectItem value="rectangle">{t("Rectangle")}</SelectItem>
+              <SelectItem value="ellipse">{t("Ellipse")}</SelectItem>
+              <SelectItem value="text">{t("Text")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {isRoot && (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Page Size</Label>
+            <Label className="text-xs text-muted-foreground">{t("Page Size")}</Label>
             <div className="flex items-center gap-1">
               {PAGE_PRESETS.map((p) => {
                 const Icon = PRESET_ICONS[p.id as keyof typeof PRESET_ICONS]
@@ -100,7 +102,7 @@ export function BasicsSection() {
                 return (
                   <button
                     key={p.id}
-                    title={`${p.label} (${p.width}×${p.height})`}
+                    title={`${t(p.label)} (${p.width}×${p.height})`}
                     onClick={() =>
                       updateCanvasData(selectedId, {
                         rect: { x: 0, y: 0, w: p.width, h: p.height },

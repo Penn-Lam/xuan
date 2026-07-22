@@ -23,10 +23,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useI18n } from "@/lib/i18n"
 
 type DrawTool = "select" | "rectangle"
 
 export function CanvasEditor() {
+  const { t } = useI18n()
   const document = useEditorStore((s) => s.document)
   const selectNode = useEditorStore((s) => s.selectNode)
   const addNode = useEditorStore((s) => s.addNode)
@@ -161,7 +163,7 @@ export function CanvasEditor() {
 
       // 只有足够大的拖拽才创建节点（否则视为点击，切回 select）
       if (w > 10 && h > 10) {
-        const newId = addNode(rootId, "New Region", "section")
+        const newId = addNode(rootId, t("New Region"), "section")
         // 设置新节点的位置和尺寸（相对 root frame）
         updateCanvasData(newId, {
           rect: {
@@ -177,7 +179,7 @@ export function CanvasEditor() {
       }
       drawRef.current = null
     },
-    [tool, zoom, rootId, addNode, updateCanvasData],
+    [tool, zoom, rootId, addNode, updateCanvasData, t],
   )
 
   return (
@@ -198,22 +200,22 @@ export function CanvasEditor() {
     >
       <TooltipProvider>
         <div className="pointer-events-auto absolute left-3 top-3 z-10 flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
-          <ToolButton active={tool === "select"} onClick={() => setTool("select")} label="Select and move components">
+          <ToolButton active={tool === "select"} onClick={() => setTool("select")} label={t("Select and move components")}>
             <Cursor />
           </ToolButton>
-          <ToolButton active={tool === "rectangle"} onClick={() => setTool("rectangle")} label="Draw rectangle components">
+          <ToolButton active={tool === "rectangle"} onClick={() => setTool("rectangle")} label={t("Draw rectangle components")}>
             <Square />
           </ToolButton>
-          <ToolButton active={snapToComponents} onClick={() => setSnapToComponents((value) => !value)} label="Snap to other components while dragging">
+          <ToolButton active={snapToComponents} onClick={() => setSnapToComponents((value) => !value)} label={t("Snap to other components while dragging")}>
             <Magnet />
           </ToolButton>
-          <ToolButton active={showPixelGrid} onClick={() => setShowPixelGrid((value) => !value)} label="Show pixel grid">
+          <ToolButton active={showPixelGrid} onClick={() => setShowPixelGrid((value) => !value)} label={t("Show pixel grid")}>
             <GridFour />
           </ToolButton>
-          <ToolButton active={snapToPixelGrid} onClick={() => setSnapToPixelGrid((value) => !value)} label="Snap to the pixel grid while dragging">
+          <ToolButton active={snapToPixelGrid} onClick={() => setSnapToPixelGrid((value) => !value)} label={t("Snap to the pixel grid while dragging")}>
             <DotsNine />
           </ToolButton>
-          <ToolButton onClick={() => setPan({ x: 0, y: 0 })} label="Center view">
+          <ToolButton onClick={() => setPan({ x: 0, y: 0 })} label={t("Center view")}>
             <ArrowsInSimple />
           </ToolButton>
         </div>
@@ -246,7 +248,7 @@ export function CanvasEditor() {
           )}
 
           {tool === "rectangle" && (
-            <div className="absolute inset-0 z-30 cursor-crosshair" aria-label="Rectangle drawing surface" />
+            <div className="absolute inset-0 z-30 cursor-crosshair" aria-label={t("Rectangle drawing surface")} />
           )}
 
           {/* 吸附辅助线层 */}
@@ -331,14 +333,14 @@ function SnapGuideLine({
   if (guide.orientation === "v") {
     return (
       <div
-        className="pointer-events-none absolute top-0 z-50 bg-red-500"
+        className="pointer-events-none absolute top-0 z-50 bg-destructive"
         style={{ left: guide.position, width: 1, height: viewport.height }}
       />
     )
   }
   return (
     <div
-      className="pointer-events-none absolute left-0 z-50 bg-red-500"
+      className="pointer-events-none absolute left-0 z-50 bg-destructive"
       style={{ top: guide.position, height: 1, width: viewport.width }}
     />
   )

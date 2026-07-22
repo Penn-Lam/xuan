@@ -9,6 +9,7 @@ import { MindmapEditor } from "@/components/mindmap/MindmapEditor"
 import { CanvasEditor } from "@/components/canvas/CanvasEditor"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { Toaster } from "@/components/ui/sonner"
+import { useI18n } from "@/lib/i18n"
 
 export default function App() {
   const mode = useEditorStore((s) => s.mode)
@@ -55,6 +56,7 @@ export default function App() {
 }
 
 function ShortcutHints({ mode }: { mode: "mindmap" | "canvas" }) {
+  const { t } = useI18n()
   const shortcuts: [string[], string][] =
     mode === "mindmap"
       ? [
@@ -70,7 +72,7 @@ function ShortcutHints({ mode }: { mode: "mindmap" | "canvas" }) {
         ]
 
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-lg border bg-background/90 px-2 py-1.5 text-[10px] text-muted-foreground shadow-xs backdrop-blur">
+    <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-lg border bg-background/90 px-2 py-1.5 text-xs text-muted-foreground shadow-xs backdrop-blur">
       {shortcuts.map(([keys, action]) => (
         <span key={action} className="flex items-center gap-1">
           <KbdGroup>
@@ -81,7 +83,7 @@ function ShortcutHints({ mode }: { mode: "mindmap" | "canvas" }) {
               </Fragment>
             ))}
           </KbdGroup>
-          {action}
+          {t(action)}
         </span>
       ))}
     </div>

@@ -6,6 +6,11 @@ import {
   getContentFields,
   getPropFields,
 } from "./catalog"
+import { translate } from "../lib/i18n"
+
+assert.equal(translate("zh", "Theme"), "主题")
+assert.equal(translate("en", "Theme"), "Theme")
+assert.equal(translate("zh", "Unknown key"), "Unknown key")
 
 assert.deepEqual(
   getPropFields("Sidebar").map(({ key }) => key),

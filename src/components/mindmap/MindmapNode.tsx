@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input"
 import { useEditorStore } from "@/store/useEditorStore"
 import { cn } from "@/lib/utils"
 import type { MindmapNodeData } from "./useMindmapTree"
+import { useI18n } from "@/lib/i18n"
 
 type MindmapNodeProps = NodeProps & { data: MindmapNodeData }
 
 function MindmapNodeBase({ data, selected }: MindmapNodeProps) {
+  const { t } = useI18n()
   const d = data
   const renamingId = useEditorStore((s) => s.renamingId)
   const setRenaming = useEditorStore((s) => s.setRenaming)
@@ -79,17 +81,17 @@ function MindmapNodeBase({ data, selected }: MindmapNodeProps) {
       </div>
 
       <div className="flex items-center justify-between">
-        <Badge variant="secondary" className="font-mono text-[10px]">
+        <Badge variant="secondary" className="font-mono text-xs">
           {d.role}
         </Badge>
         {d.childCount > 0 && (
           <button
-            className="flex h-4 w-4 items-center justify-center rounded-full border bg-background text-[10px] text-muted-foreground hover:bg-accent"
+            className="flex h-4 w-4 items-center justify-center rounded-full border bg-background text-xs text-muted-foreground hover:bg-accent"
             onClick={(e) => {
               e.stopPropagation()
               d.onToggleCollapse?.(d.nodeId)
             }}
-            aria-label={d.collapsed ? "Expand" : "Collapse"}
+            aria-label={t(d.collapsed ? "Expand" : "Collapse")}
           >
             <CaretDown
               width={10}

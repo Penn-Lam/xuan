@@ -12,8 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useI18n } from "@/lib/i18n"
 
 export function PageMenu() {
+  const { t } = useI18n()
   const pages = useEditorStore((s) => s.pages)
   const activePageId = useEditorStore((s) => s.activePageId)
   const switchPage = useEditorStore((s) => s.switchPage)
@@ -28,7 +30,7 @@ export function PageMenu() {
         className={buttonVariants({ variant: "outline", size: "sm" })}
       >
         <File />
-        Pages
+        {t("Pages")}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuGroup>
@@ -56,7 +58,7 @@ export function PageMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => createPage()}>
             <Plus />
-            New Page
+            {t("New Page")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

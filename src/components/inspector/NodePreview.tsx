@@ -24,6 +24,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import type { FlatNode, XuanDocument } from "@/types/document"
+import { useI18n } from "@/lib/i18n"
+
+type Translate = (key: string) => string
 
 function textValue(value: unknown, fallback = ""): string {
   return value == null ? fallback : String(value)
@@ -40,7 +43,7 @@ function listValue(value: unknown, fallback: string[] = []): string[] {
   return fallback
 }
 
-function renderSidebar(node: FlatNode, document: XuanDocument) {
+function renderSidebar(node: FlatNode, document: XuanDocument, t: Translate) {
   const childNodes = node.childrenIds.map((id) => document.nodes[id]).filter(Boolean)
   const branding = childNodes.find((child) => child.role === "branding")
   const menu = childNodes.find(
@@ -61,7 +64,7 @@ function renderSidebar(node: FlatNode, document: XuanDocument) {
     <Card size="sm" className="w-full">
       <CardHeader className="border-b">
         <CardTitle>{brand}</CardTitle>
-        <CardDescription>Workspace</CardDescription>
+        <CardDescription>{t("Workspace")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         {items.slice(0, 5).map((item, index) => {
@@ -80,13 +83,13 @@ function renderSidebar(node: FlatNode, document: XuanDocument) {
         })}
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
-        {textValue(content.footer, "Account & settings")}
+        {textValue(content.footer, t("Account & settings"))}
       </CardFooter>
     </Card>
   )
 }
 
-function renderTable(node: FlatNode) {
+function renderTable(node: FlatNode, t: Translate) {
   const content = node.content ?? {}
   const columns = listValue(content.columns, ["Name", "Status", "Value"])
   const rowCount = Math.min(Number(content.itemCount ?? 3), 4)
@@ -95,16 +98,16 @@ function renderTable(node: FlatNode) {
     <Card size="sm" className="w-full">
       <CardHeader>
         <CardTitle>{node.name}</CardTitle>
-        <CardDescription>{rowCount} representative rows</CardDescription>
+        <CardDescription>{rowCount} {t("representative rows")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <div className="grid grid-cols-3 gap-2 text-[10px] font-medium text-muted-foreground">
+        <div className="grid grid-cols-3 gap-2 text-xs font-medium text-muted-foreground">
           {columns.slice(0, 3).map((column) => <span key={column}>{column}</span>)}
         </div>
         {Array.from({ length: rowCount }, (_, index) => (
           <div key={index} className="grid grid-cols-3 gap-2 border-t pt-2 text-xs">
             <span>Item {index + 1}</span>
-            <span>Active</span>
+            <span>{t("Active")}</span>
             <span>—</span>
           </div>
         ))}
@@ -113,14 +116,14 @@ function renderTable(node: FlatNode) {
   )
 }
 
-function renderChart(node: FlatNode) {
+function renderChart(node: FlatNode, t: Translate) {
   const content = node.content ?? {}
-  const series = listValue(content.series, ["Series"])
+  const series = listValue(content.series, [t("Series")])
   return (
     <Card size="sm" className="w-full">
       <CardHeader>
         <CardTitle>{textValue(content.title, node.name)}</CardTitle>
-        <CardDescription>{textValue(content.range, "Representative data")}</CardDescription>
+        <CardDescription>{textValue(content.range, t("Representative data"))}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex h-20 items-end gap-2">
@@ -140,13 +143,13 @@ function renderChart(node: FlatNode) {
   )
 }
 
-function renderPreview(node: FlatNode, document: XuanDocument) {
+function renderPreview(node: FlatNode, document: XuanDocument, t: Translate) {
   const { role, component, content } = node
   const ref = component?.ref
   const props = component?.props ?? {}
   const semantic = content ?? {}
 
-  if (ref === "Sidebar" || role === "sidebar") return renderSidebar(node, document)
+  if (ref === "Sidebar" || role === "sidebar") return renderSidebar(node, document, t)
   if (ref === "SidebarMenu") {
     const items = listValue(semantic.items, ["Overview", "Orders", "Settings"])
     return (
@@ -176,20 +179,20 @@ function renderPreview(node: FlatNode, document: XuanDocument) {
           />
         )}
         <Input
-          placeholder={textValue(semantic.placeholder ?? props.placeholder, "Enter a value…")}
+          placeholder={textValue(semantic.placeholder ?? props.placeholder, t("Enter a value…"))}
           className={role === "search" ? "pl-8" : undefined}
         />
       </div>
     )
   }
   if (ref === "Textarea") {
-    return <Textarea placeholder={textValue(props.placeholder, "Enter details…")} />
+    return <Textarea placeholder={textValue(props.placeholder, t("Enter details…"))} />
   }
   if (ref === "Badge") {
     return <Badge variant="secondary">{textValue(semantic.text ?? semantic.label, node.name)}</Badge>
   }
-  if (ref === "Table" || role === "table" || role === "data-table") return renderTable(node)
-  if (ref === "ChartContainer" || role === "chart") return renderChart(node)
+  if (ref === "Table" || role === "table" || role === "data-table") return renderTable(node, t)
+  if (ref === "ChartContainer" || role === "chart") return renderChart(node, t)
   if (ref === "Card" || role === "stat-card" || role === "card") {
     return (
       <Card size="sm" className="w-full">
@@ -209,7 +212,7 @@ function renderPreview(node: FlatNode, document: XuanDocument) {
       <Card size="sm" className="w-full">
         <CardHeader>
           <CardTitle>{textValue(semantic.title, node.name)}</CardTitle>
-          <CardDescription>{textValue(semantic.message, "Alert message")}</CardDescription>
+          <CardDescription>{textValue(semantic.message, t("Alert message"))}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -226,13 +229,14 @@ function renderPreview(node: FlatNode, document: XuanDocument) {
         <CardDescription>{ref ? `${ref} · ${role}` : role}</CardDescription>
       </CardHeader>
       <CardContent className="text-xs text-muted-foreground">
-        Add semantic content fields to make this preview more specific.
+        {t("Add semantic content fields to make this preview more specific.")}
       </CardContent>
     </Card>
   )
 }
 
 export function NodePreview() {
+  const { t } = useI18n()
   const selectedId = useEditorStore((s) => s.selectedId)
   const document = useEditorStore((s) => s.document)
 
@@ -242,9 +246,9 @@ export function NodePreview() {
 
   return (
     <section className="p-4">
-      <h3 className="mb-3 text-sm font-semibold">Preview</h3>
+      <h3 className="mb-3 text-sm font-semibold">{t("Preview")}</h3>
       <div className="rounded-md border bg-muted/30 p-3">
-        {renderPreview(node, document)}
+        {renderPreview(node, document, t)}
       </div>
     </section>
   )

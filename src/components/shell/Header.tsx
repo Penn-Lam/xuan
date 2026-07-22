@@ -2,6 +2,7 @@
 //  Header —— 顶部栏：页面名称 / 模式切换 / 导入导出
 // ============================================================
 import { useRef } from "react"
+import { useTheme } from "next-themes"
 import {
   ArrowCounterClockwise,
   ArrowClockwise,
@@ -11,6 +12,11 @@ import {
   Sparkle,
   TreeStructure,
   FrameCorners,
+  Translate,
+  Desktop,
+  Sun,
+  Moon,
+  Check,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
 import { useEditorStore } from "@/store/useEditorStore"
@@ -28,9 +34,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { buildGenerationPrompt } from "@/prompts/generation"
+import { useI18n, type Locale } from "@/lib/i18n"
 import { PageMenu } from "./PageMenu"
 
 export function Header() {
+  const { locale, setLocale, t } = useI18n()
+  const { theme, setTheme } = useTheme()
   const document = useEditorStore((s) => s.document)
   const mode = useEditorStore((s) => s.mode)
   const setMode = useEditorStore((s) => s.setMode)
@@ -53,9 +62,9 @@ export function Header() {
       a.download = `${document.meta.name.replace(/\s+/g, "-").toLowerCase()}.json`
       a.click()
       URL.revokeObjectURL(url)
-      toast.success("Exported JSON", { description: "Copied to clipboard and downloaded" })
+      toast.success(t("Exported JSON"), { description: t("Copied to clipboard and downloaded") })
     } catch (e) {
-      toast.error("Export failed", { description: String(e) })
+      toast.error(t("Export failed"), { description: String(e) })
     }
   }
 
@@ -64,11 +73,11 @@ export function Header() {
       const exported = serializeDocument(document)
       const prompt = buildGenerationPrompt(exported)
       await navigator.clipboard.writeText(prompt)
-      toast.success("Copied generation prompt", {
-        description: "Paste into your AI tool to generate the page",
+      toast.success(t("Copied generation prompt"), {
+        description: t("Paste into your AI tool to generate the page"),
       })
     } catch (e) {
-      toast.error("Copy failed", { description: String(e) })
+      toast.error(t("Copy failed"), { description: String(e) })
     }
   }
 
@@ -80,9 +89,9 @@ export function Header() {
       try {
         const doc = importFromJson(reader.result as string)
         replaceDocument(doc)
-        toast.success("Imported document", { description: file.name })
+        toast.success(t("Imported document"), { description: file.name })
       } catch (err) {
-        toast.error("Import failed", { description: String(err) })
+        toast.error(t("Import failed"), { description: String(err) })
       }
     }
     reader.readAsText(file)
@@ -98,8 +107,8 @@ export function Header() {
         <Input
           value={document.meta.name}
           onChange={(e) => setDocumentName(e.target.value)}
-          className="h-8 w-48"
-          aria-label="Document name"
+          className="h-8 w-48 rounded-none border-0 bg-transparent px-1 shadow-none focus-visible:border-b focus-visible:border-ring focus-visible:ring-0 dark:bg-transparent"
+          aria-label={t("Document name")}
         />
       </div>
 
@@ -124,7 +133,7 @@ export function Header() {
           size="icon-sm"
           onClick={undo}
           disabled={!history.canUndo()}
-          aria-label="Undo"
+          aria-label={t("Undo")}
         >
           <ArrowCounterClockwise />
         </Button>
@@ -133,7 +142,7 @@ export function Header() {
           size="icon-sm"
           onClick={redo}
           disabled={!history.canRedo()}
-          aria-label="Redo"
+          aria-label={t("Redo")}
         >
           <ArrowClockwise />
         </Button>
@@ -142,7 +151,7 @@ export function Header() {
 
         <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
           <UploadSimple />
-          Import
+          {t("Import")}
         </Button>
         <input
           ref={fileInputRef}
@@ -157,7 +166,7 @@ export function Header() {
             className={buttonVariants({ size: "sm" })}
           >
             <DownloadSimple />
-            Export
+            {t("Export")}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
@@ -170,6 +179,45 @@ export function Header() {
                 Prompt
               </DropdownMenuItem>
             </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            aria-label={t("Language")}
+          >
+            <Translate />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {(["zh", "en"] as Locale[]).map((value) => (
+              <DropdownMenuItem key={value} onClick={() => setLocale(value)}>
+                <span className="w-4">{locale === value && <Check />}</span>
+                {t(value === "zh" ? "Chinese" : "English")}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            aria-label={t("Theme")}
+          >
+            {theme === "light" ? <Sun /> : theme === "dark" ? <Moon /> : <Desktop />}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {([
+              ["system", "System", Desktop],
+              ["light", "Light", Sun],
+              ["dark", "Dark", Moon],
+            ] as const).map(([value, label, Icon]) => (
+              <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
+                <Icon />
+                {t(label)}
+                <span className="ml-auto w-4">{theme === value && <Check />}</span>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
