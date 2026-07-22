@@ -22,6 +22,7 @@ interface CanvasNodeProps {
   zoom?: number
   snapToComponents?: boolean
   snapToPixelGrid?: boolean
+  showPixelGrid?: boolean
 }
 
 function CanvasNodeBase({
@@ -29,6 +30,7 @@ function CanvasNodeBase({
   zoom = 1,
   snapToComponents = true,
   snapToPixelGrid = true,
+  showPixelGrid = false,
 }: CanvasNodeProps) {
   const document = useEditorStore((s) => s.document)
   const selectedId = useEditorStore((s) => s.selectedId)
@@ -153,6 +155,7 @@ function CanvasNodeBase({
     <div
       className={cn(
         "canvas-node absolute select-none border bg-[#eef1f5b8] transition-colors",
+        !node.parentId && showPixelGrid && "canvas-grid-bg",
         shapeClass,
         isSelected ? "border-primary ring-2 ring-ring/50" : "border-[#aeb7c5]",
       )}

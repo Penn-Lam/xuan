@@ -23,7 +23,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
 
 type DrawTool = "select" | "rectangle"
 
@@ -211,10 +210,7 @@ export function CanvasEditor() {
         <div
           ref={frameRef}
           data-bg="true"
-          className={cn(
-            "relative bg-background shadow-lg",
-            showPixelGrid && "canvas-grid-bg",
-          )}
+          className="relative bg-background shadow-lg"
           style={{ width: viewport.width, height: viewport.height }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -224,6 +220,7 @@ export function CanvasEditor() {
               zoom={zoom}
               snapToComponents={snapToComponents}
               snapToPixelGrid={snapToPixelGrid}
+              showPixelGrid={showPixelGrid}
             />
           )}
 
