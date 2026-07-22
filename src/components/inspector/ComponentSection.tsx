@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SemanticFieldsEditor } from "./SemanticFieldsEditor"
+import { FieldViewTabs } from "./FieldViewTabs"
 import { HelpTooltip } from "./HelpTooltip"
 import { useI18n } from "@/lib/i18n"
 
@@ -88,7 +88,7 @@ export function ComponentSection() {
               <Label className="text-xs text-muted-foreground">{t("Props")}</Label>
               <HelpTooltip content={t("Add only the behavior or appearance props this component needs.")} />
             </div>
-            <SemanticFieldsEditor
+            <FieldViewTabs
               key={`${selectedId}:${component.ref}`}
               definitions={getPropFields(component.ref)}
               value={component.props}

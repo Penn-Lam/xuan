@@ -310,7 +310,7 @@ function ToolButton({
       <TooltipTrigger
         render={
           <Button
-            variant={active ? "default" : "ghost"}
+            variant="ghost"
             size="icon-sm"
             onClick={(event) => {
               event.stopPropagation()
@@ -318,6 +318,11 @@ function ToolButton({
             }}
             aria-label={label}
             aria-pressed={active}
+            className={
+              active
+                ? "bg-muted text-foreground hover:bg-muted hover:text-foreground dark:bg-muted dark:hover:bg-muted"
+                : undefined
+            }
           />
         }
       >

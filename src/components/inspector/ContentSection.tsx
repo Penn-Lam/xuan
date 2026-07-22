@@ -4,7 +4,7 @@
 import { useEditorStore } from "@/store/useEditorStore"
 import { getContentFields } from "@/store/catalog"
 import { Label } from "@/components/ui/label"
-import { SemanticFieldsEditor } from "./SemanticFieldsEditor"
+import { FieldViewTabs } from "./FieldViewTabs"
 import { HelpTooltip } from "./HelpTooltip"
 import { useI18n } from "@/lib/i18n"
 
@@ -25,7 +25,7 @@ export function ContentSection() {
           <Label className="text-xs text-muted-foreground">{t("Semantic content")}</Label>
           <HelpTooltip content={t("Describe the copy or representative data without writing JSON.")} />
         </div>
-        <SemanticFieldsEditor
+        <FieldViewTabs
           key={selectedId}
           definitions={getContentFields(node.role, node.component?.ref)}
           value={node.content ?? {}}
