@@ -145,6 +145,7 @@
                 "component": {
                   "ref": "Input",
                   "props": {
+                    "type": "search",
                     "placeholder": "Search orders, products..."
                   }
                 },
@@ -310,7 +311,9 @@
             "shape": "rectangle",
             "component": {
               "ref": "Table",
-              "props": {}
+              "props": {
+                "striped": true
+              }
             },
             "content": {
               "itemCount": 8,

@@ -1,72 +1,234 @@
 // ============================================================
-//  Inspector / NodePreview —— role + component 组合单元的实时预览
-//  用真实 shadcn 组件渲染，解决「纯文字难脑补」问题
-//  Phase 1：基础实现；Phase 3 增强
+//  Inspector / NodePreview —— catalog-aware semantic preview
 // ============================================================
 import type { ComponentProps } from "react"
+import {
+  ChartBar,
+  Gear,
+  House,
+  MagnifyingGlass,
+  User,
+} from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import type { FlatNode } from "@/types/document"
+import type { FlatNode, XuanDocument } from "@/types/document"
 
-/** 根据 role + component 渲染预览 */
-function renderPreview(node: FlatNode) {
+function textValue(value: unknown, fallback = ""): string {
+  return value == null ? fallback : String(value)
+}
+
+function listValue(value: unknown, fallback: string[] = []): string[] {
+  if (Array.isArray(value)) return value.map(String)
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return fallback
+}
+
+function renderSidebar(node: FlatNode, document: XuanDocument) {
+  const childNodes = node.childrenIds.map((id) => document.nodes[id]).filter(Boolean)
+  const branding = childNodes.find((child) => child.role === "branding")
+  const menu = childNodes.find(
+    (child) => child.component?.ref === "SidebarMenu" || child.role === "navigation",
+  )
+  const content = node.content ?? {}
+  const brand = textValue(
+    content.brand ?? branding?.content?.text,
+    branding?.name ?? node.name,
+  )
+  const items = listValue(
+    content.items ?? menu?.content?.items,
+    ["Overview", "Analytics", "Settings"],
+  )
+  const icons = [House, ChartBar, User, Gear]
+
+  return (
+    <Card size="sm" className="w-full">
+      <CardHeader className="border-b">
+        <CardTitle>{brand}</CardTitle>
+        <CardDescription>Workspace</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-1">
+        {items.slice(0, 5).map((item, index) => {
+          const Icon = icons[index % icons.length]
+          return (
+            <Button
+              key={item}
+              variant={index === 0 ? "secondary" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+            >
+              <Icon data-icon="inline-start" />
+              {item}
+            </Button>
+          )
+        })}
+      </CardContent>
+      <CardFooter className="text-xs text-muted-foreground">
+        {textValue(content.footer, "Account & settings")}
+      </CardFooter>
+    </Card>
+  )
+}
+
+function renderTable(node: FlatNode) {
+  const content = node.content ?? {}
+  const columns = listValue(content.columns, ["Name", "Status", "Value"])
+  const rowCount = Math.min(Number(content.itemCount ?? 3), 4)
+
+  return (
+    <Card size="sm" className="w-full">
+      <CardHeader>
+        <CardTitle>{node.name}</CardTitle>
+        <CardDescription>{rowCount} representative rows</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <div className="grid grid-cols-3 gap-2 text-[10px] font-medium text-muted-foreground">
+          {columns.slice(0, 3).map((column) => <span key={column}>{column}</span>)}
+        </div>
+        {Array.from({ length: rowCount }, (_, index) => (
+          <div key={index} className="grid grid-cols-3 gap-2 border-t pt-2 text-xs">
+            <span>Item {index + 1}</span>
+            <span>Active</span>
+            <span>—</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+function renderChart(node: FlatNode) {
+  const content = node.content ?? {}
+  const series = listValue(content.series, ["Series"])
+  return (
+    <Card size="sm" className="w-full">
+      <CardHeader>
+        <CardTitle>{textValue(content.title, node.name)}</CardTitle>
+        <CardDescription>{textValue(content.range, "Representative data")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex h-20 items-end gap-2">
+          {[42, 68, 52, 86, 64, 92, 74].map((height, index) => (
+            <div
+              key={index}
+              className="flex-1 rounded-t-sm bg-primary/70"
+              style={{ height: `${height}%` }}
+            />
+          ))}
+        </div>
+        <div className="mt-2 flex gap-2">
+          {series.map((item) => <Badge key={item} variant="secondary">{item}</Badge>)}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function renderPreview(node: FlatNode, document: XuanDocument) {
   const { role, component, content } = node
   const ref = component?.ref
-  const c = content ?? {}
+  const props = component?.props ?? {}
+  const semantic = content ?? {}
 
-  // 有绑定组件：渲染组件
-  if (ref === "Button") {
-    const variant = (component?.props.variant as ComponentProps<typeof Button>["variant"]) ?? "default"
+  if (ref === "Sidebar" || role === "sidebar") return renderSidebar(node, document)
+  if (ref === "SidebarMenu") {
+    const items = listValue(semantic.items, ["Overview", "Orders", "Settings"])
     return (
-      <Button variant={variant} size="sm">
-        {String(c.text ?? c.label ?? component?.props.children ?? "Button")}
-      </Button>
-    )
-  }
-  if (ref === "Input") {
-    return (
-      <Input
-        placeholder={String(c.placeholder ?? component?.props.placeholder ?? "Input…")}
-        className="h-8"
-      />
-    )
-  }
-  if (ref === "Card" || role === "stat-card" || role === "card") {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-sm">{String(c.label ?? node.name)}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-lg font-semibold">{String(c.value ?? "—")}</p>
-          {c.delta ? <Badge variant="secondary">{String(c.delta)}</Badge> : null}
+      <Card size="sm" className="w-full">
+        <CardContent className="flex flex-col gap-1">
+          {items.map((item, index) => (
+            <Button key={item} variant={index === 0 ? "secondary" : "ghost"} size="sm" className="justify-start">
+              {item}
+            </Button>
+          ))}
         </CardContent>
       </Card>
     )
   }
-
-  // 无绑定组件：按 role 渲染骨架
+  if (ref === "Button") {
+    const variant = (props.variant as ComponentProps<typeof Button>["variant"]) ?? "default"
+    return <Button variant={variant}>{textValue(semantic.label ?? semantic.text, node.name)}</Button>
+  }
+  if (ref === "Input" || role === "search") {
+    return (
+      <div className="relative">
+        {role === "search" && (
+          <MagnifyingGlass
+            className="pointer-events-none absolute left-2.5 top-2.5 text-muted-foreground"
+            width={14}
+            height={14}
+          />
+        )}
+        <Input
+          placeholder={textValue(semantic.placeholder ?? props.placeholder, "Enter a value…")}
+          className={role === "search" ? "pl-8" : undefined}
+        />
+      </div>
+    )
+  }
+  if (ref === "Textarea") {
+    return <Textarea placeholder={textValue(props.placeholder, "Enter details…")} />
+  }
+  if (ref === "Badge") {
+    return <Badge variant="secondary">{textValue(semantic.text ?? semantic.label, node.name)}</Badge>
+  }
+  if (ref === "Table" || role === "table" || role === "data-table") return renderTable(node)
+  if (ref === "ChartContainer" || role === "chart") return renderChart(node)
+  if (ref === "Card" || role === "stat-card" || role === "card") {
+    return (
+      <Card size="sm" className="w-full">
+        <CardHeader>
+          <CardTitle>{textValue(semantic.label, node.name)}</CardTitle>
+          {semantic.description != null && <CardDescription>{textValue(semantic.description)}</CardDescription>}
+        </CardHeader>
+        <CardContent className="flex items-end justify-between gap-2">
+          <p className="text-xl font-semibold">{textValue(semantic.value, "—")}</p>
+          {semantic.delta != null && <Badge variant="secondary">{textValue(semantic.delta)}</Badge>}
+        </CardContent>
+      </Card>
+    )
+  }
+  if (ref === "Alert") {
+    return (
+      <Card size="sm" className="w-full">
+        <CardHeader>
+          <CardTitle>{textValue(semantic.title, node.name)}</CardTitle>
+          <CardDescription>{textValue(semantic.message, "Alert message")}</CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
   if (role === "heading" || role === "branding") {
-    return <p className="text-base font-semibold">{String(c.text ?? node.name)}</p>
+    return <p className="text-base font-semibold">{textValue(semantic.text, node.name)}</p>
   }
-  if (role === "search") {
-    return <Input placeholder="Search…" className="h-8" />
-  }
-  if (role === "separator") {
-    return <Separator />
-  }
+  if (ref === "Separator") return <Separator />
 
-  // 兜底：显示节点信息
   return (
-    <div className="flex flex-col gap-1 rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-      <span className="font-medium text-foreground">{node.name}</span>
-      <span>role: {role}</span>
-      {ref && <span>component: {ref}</span>}
-    </div>
+    <Card size="sm" className="w-full">
+      <CardHeader>
+        <CardTitle>{node.name}</CardTitle>
+        <CardDescription>{ref ? `${ref} · ${role}` : role}</CardDescription>
+      </CardHeader>
+      <CardContent className="text-xs text-muted-foreground">
+        Add semantic content fields to make this preview more specific.
+      </CardContent>
+    </Card>
   )
 }
 
@@ -82,7 +244,7 @@ export function NodePreview() {
     <section className="p-4">
       <h3 className="mb-3 text-sm font-semibold">Preview</h3>
       <div className="rounded-md border bg-muted/30 p-3">
-        {renderPreview(node)}
+        {renderPreview(node, document)}
       </div>
     </section>
   )

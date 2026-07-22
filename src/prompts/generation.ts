@@ -2,11 +2,20 @@
 //  AI 生成 prompt 模板 —— 把导出 JSON 包装成结构化生成指令
 // ============================================================
 import type { ExportDoc } from "@/types/document"
-import { COMPONENTS } from "@/store/catalog"
+import { COMPONENT_CATALOG } from "@/store/catalog"
 
 /** 构建发给 AI 的生成 prompt */
 export function buildGenerationPrompt(doc: ExportDoc, notes?: string): string {
   const json = JSON.stringify(doc, null, 2)
+  const catalog = Object.entries(COMPONENT_CATALOG)
+    .map(([name, definition]) => {
+      const props = definition.props.map((field) => `${field.key}:${field.type}`).join(", ")
+      const content = (definition.content ?? [])
+        .map((field) => `${field.key}:${field.type}`)
+        .join(", ")
+      return `- ${name}: props {${props || "none"}}; content {${content || "role-defined"}}`
+    })
+    .join("\n")
   return `You are a senior frontend engineer. Your task is to accurately turn a wireframe JSON document into runnable page code.
 
 # Input Format
@@ -14,6 +23,8 @@ export function buildGenerationPrompt(doc: ExportDoc, notes?: string): string {
 - rect contains absolute canvas coordinates and dimensions.
 - Rect dimensions are reference measurements, not fixed min/max constraints.
 - component.ref names the required component. component.props must be respected as provided.
+- component.props describe behavior and appearance only.
+- content contains business copy and representative data; preserve it verbatim.
 - The children array order is the render order.
 
 # Generation Rules
@@ -35,8 +46,8 @@ export function buildGenerationPrompt(doc: ExportDoc, notes?: string): string {
 First summarize the page structure in 3-5 lines, then output a directly runnable
 single-file React component.
 
-# Available Components
-${COMPONENTS.join(", ")}
+# Component Catalog
+${catalog}
 
 # Wireframe JSON
 ${json}
