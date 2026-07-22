@@ -1,0 +1,5 @@
+hook:
+    - conventional
+scopes:
+    - description: application logic including components, models, state store, and utility libraries within src/; does not cover configuration or assets
+      name: src
