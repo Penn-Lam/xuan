@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useSyncExternalStore } from "react"
 import type { ExportDoc } from "@/types/document"
 import { deserializeDocument } from "@/model/deserialize"
 import { serializeDocument } from "@/model/serialize"
@@ -128,6 +128,14 @@ function startAgentDocumentSync(): () => void {
   }
 }
 
+function subscribeAgentDocumentSync(): () => void {
+  return startAgentDocumentSync()
+}
+
+function getAgentDocumentSyncSnapshot(): null {
+  return null
+}
+
 export function useAgentDocumentSync(): void {
-  useEffect(() => startAgentDocumentSync(), [])
+  useSyncExternalStore(subscribeAgentDocumentSync, getAgentDocumentSyncSnapshot)
 }
