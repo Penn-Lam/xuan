@@ -1,6 +1,7 @@
 // ============================================================
 //  CanvasEditor —— Canvas 模式容器
-//  页面 frame + pan/zoom + 视图开关 + 吸附辅助线 + 绘制工具
+//  页面 frame + pan/zoom + 框选 + 视图开关 + 吸附辅助线 + 绘制工具
+//  pan：中键 / Space+拖；框选：select 工具在空白处拖
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -14,6 +15,8 @@ import {
   ArrowsInSimple,
 } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
+import { hitTestMarquee, topLevelSelectedIds } from "@/lib/geometry"
+import type { Rect } from "@/types/document"
 import { CanvasNode } from "./CanvasNode"
 import { useSnapStore, type SnapGuide } from "./useCanvasSnap"
 import { Button } from "@/components/ui/button"
@@ -27,14 +30,40 @@ import { useI18n } from "@/lib/i18n"
 
 type DrawTool = "select" | "rectangle"
 
+const MARQUEE_MIN = 3
+
+/** client 坐标 → frame 内坐标（已除 zoom） */
+function clientToFrame(
+  clientX: number,
+  clientY: number,
+  frame: DOMRect,
+  zoom: number,
+): { x: number; y: number } {
+  return {
+    x: (clientX - frame.left) / zoom,
+    y: (clientY - frame.top) / zoom,
+  }
+}
+
+function normalizeRect(x1: number, y1: number, x2: number, y2: number): Rect {
+  return {
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    w: Math.abs(x2 - x1),
+    h: Math.abs(y2 - y1),
+  }
+}
+
 export function CanvasEditor() {
   const { t } = useI18n()
   const document = useEditorStore((s) => s.document)
   const selectNode = useEditorStore((s) => s.selectNode)
+  const selectNodes = useEditorStore((s) => s.selectNodes)
   const addNode = useEditorStore((s) => s.addNode)
   const updateCanvasData = useEditorStore((s) => s.updateCanvasData)
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const removeNodes = useEditorStore((s) => s.removeNodes)
+  const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
   const rootId = document.rootId
   const rootCanvas = document.canvas[rootId]
   const viewport = document.meta.viewport
@@ -55,6 +84,22 @@ export function CanvasEditor() {
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
 
+  // Space 按住 → pan 模式
+  const [spaceHeld, setSpaceHeld] = useState(false)
+  const spaceHeldRef = useRef(false)
+
+  // 框选
+  const marqueeRef = useRef<{
+    startX: number
+    startY: number
+    additive: boolean
+    baseIds: string[]
+  } | null>(null)
+  const marqueeBoxRef = useRef<Rect | null>(null)
+  const [marquee, setMarquee] = useState<Rect | null>(null)
+  /** 刚完成框选时抑制 background click 清空 */
+  const suppressClickRef = useRef(false)
+
   // 用原生事件监听器处理 wheel（React onWheel 是 passive，无法 preventDefault）
   useEffect(() => {
     const el = containerRef.current
@@ -70,59 +115,249 @@ export function CanvasEditor() {
     return () => el.removeEventListener("wheel", onWheel)
   }, [])
 
+  // Space 跟踪（忽略输入框）
   useEffect(() => {
+    const isTypingTarget = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null
+      if (!el) return false
+      return (
+        el.tagName === "INPUT" ||
+        el.tagName === "TEXTAREA" ||
+        el.isContentEditable
+      )
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat || isTypingTarget(e.target)) return
+      e.preventDefault()
+      spaceHeldRef.current = true
+      setSpaceHeld(true)
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== "Space") return
+      spaceHeldRef.current = false
+      setSpaceHeld(false)
+    }
+    const onBlur = () => {
+      spaceHeldRef.current = false
+      setSpaceHeld(false)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("keyup", onKeyUp)
+    window.addEventListener("blur", onBlur)
+    return () => {
+      window.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("keyup", onKeyUp)
+      window.removeEventListener("blur", onBlur)
+    }
+  }, [])
+
+  // 方向键连击/长按合并为一条 undo：live 更新 + 停顿后 seal
+  const NUDGE_SEAL_MS = 400
+  const nudgeSealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sealHistoryBatch = useEditorStore((s) => s.sealHistoryBatch)
+
+  const scheduleNudgeSeal = useCallback(() => {
+    if (nudgeSealTimerRef.current) clearTimeout(nudgeSealTimerRef.current)
+    nudgeSealTimerRef.current = setTimeout(() => {
+      nudgeSealTimerRef.current = null
+      sealHistoryBatch()
+    }, NUDGE_SEAL_MS)
+  }, [sealHistoryBatch])
+
+  useEffect(() => {
+    const isTypingTarget = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null
+      if (!el) return false
+      return (
+        el.tagName === "INPUT" ||
+        el.tagName === "TEXTAREA" ||
+        el.isContentEditable
+      )
+    }
+
+    const arrowKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"])
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
+      if (isTypingTarget(event.target)) return
+
+      if ((event.key === "Backspace" || event.key === "Delete") && selectedIds.length > 0) {
+        // delete 走 commit，store 会自动 seal 未收口的微移 batch
+        event.preventDefault()
+        if (nudgeSealTimerRef.current) {
+          clearTimeout(nudgeSealTimerRef.current)
+          nudgeSealTimerRef.current = null
+        }
+        removeNodes(selectedIds)
         return
       }
-      if ((event.key === "Backspace" || event.key === "Delete") && selectedIds.length > 0) {
+
+      // 方向键微移：Shift = 10px，否则 1px；连击合并一条 undo
+      if (arrowKeys.has(event.key) && selectedIds.length > 0) {
         event.preventDefault()
-        removeNodes(selectedIds)
+        const step = event.shiftKey ? 10 : 1
+        let dx = 0
+        let dy = 0
+        if (event.key === "ArrowLeft") dx = -step
+        if (event.key === "ArrowRight") dx = step
+        if (event.key === "ArrowUp") dy = -step
+        if (event.key === "ArrowDown") dy = step
+
+        const doc = useEditorStore.getState().document
+        const ids = topLevelSelectedIds(doc, selectedIds)
+        const updates = ids
+          .map((id) => {
+            const rect = doc.canvas[id]?.rect
+            if (!rect) return null
+            return {
+              id,
+              rect: { x: rect.x + dx, y: rect.y + dy, w: rect.w, h: rect.h },
+            }
+          })
+          .filter((u): u is { id: string; rect: Rect } => u !== null)
+        if (updates.length > 0) {
+          updateCanvasRects(updates, { history: false })
+          scheduleNudgeSeal()
+        }
       }
     }
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!arrowKeys.has(event.key)) return
+      // 抬起后重新计时：长按松手 / 连点间隔都靠 debounce 收口成一条
+      scheduleNudgeSeal()
+    }
+
     window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [removeNodes, selectedIds])
+    window.addEventListener("keyup", handleKeyUp)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+      if (nudgeSealTimerRef.current) {
+        clearTimeout(nudgeSealTimerRef.current)
+        nudgeSealTimerRef.current = null
+      }
+      // 卸载时收口，避免 batch 悬空
+      sealHistoryBatch()
+    }
+  }, [removeNodes, selectedIds, updateCanvasRects, scheduleNudgeSeal, sealHistoryBatch])
+
+  const isEmptyTarget = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null
+    if (!el) return false
+    return Boolean(el.dataset.bg || el.dataset.canvasRoot)
+  }
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // 在背景（非节点）上按下时启动 pan（仅 select 工具）
       if (tool !== "select") return
-      if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.bg) {
+      if (!isEmptyTarget(e.target)) return
+
+      const wantsPan =
+        e.button === 1 || e.button === 2 || spaceHeldRef.current || e.altKey
+
+      if (wantsPan) {
+        e.preventDefault()
         panRef.current = {
           startX: e.clientX,
           startY: e.clientY,
           origX: pan.x,
           origY: pan.y,
         }
-        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        return
       }
+
+      // 左键空白 → 框选（需 frame 坐标系）
+      if (e.button !== 0) return
+      const frame = frameRef.current
+      if (!frame) return
+      const frameRect = frame.getBoundingClientRect()
+      const { x, y } = clientToFrame(e.clientX, e.clientY, frameRect, zoom)
+      const state = useEditorStore.getState()
+      marqueeRef.current = {
+        startX: x,
+        startY: y,
+        additive: e.shiftKey,
+        baseIds: e.shiftKey ? [...state.selectedIds] : [],
+      }
+      const initial = { x, y, w: 0, h: 0 }
+      marqueeBoxRef.current = initial
+      setMarquee(initial)
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     },
-    [pan, tool],
+    [pan, tool, zoom],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       const p = panRef.current
-      if (!p) return
-      setPan({
-        x: p.origX + (e.clientX - p.startX),
-        y: p.origY + (e.clientY - p.startY),
-      })
+      if (p) {
+        setPan({
+          x: p.origX + (e.clientX - p.startX),
+          y: p.origY + (e.clientY - p.startY),
+        })
+        return
+      }
+
+      const m = marqueeRef.current
+      if (!m) return
+      const frame = frameRef.current
+      if (!frame) return
+      const frameRect = frame.getBoundingClientRect()
+      const { x, y } = clientToFrame(e.clientX, e.clientY, frameRect, zoom)
+      const rect = normalizeRect(m.startX, m.startY, x, y)
+      marqueeBoxRef.current = rect
+      setMarquee(rect)
+
+      // 拖动过程中实时高亮命中
+      const doc = useEditorStore.getState().document
+      const hits = hitTestMarquee(doc, rect)
+      if (m.additive) {
+        const set = new Set([...m.baseIds, ...hits])
+        selectNodes([...set])
+      } else {
+        selectNodes(hits)
+      }
     },
-    [],
+    [selectNodes, zoom],
   )
 
   const handlePointerUp = useCallback(() => {
+    const wasPanning = panRef.current !== null
     panRef.current = null
-  }, [])
+
+    const m = marqueeRef.current
+    if (m) {
+      const box = marqueeBoxRef.current
+      marqueeRef.current = null
+      marqueeBoxRef.current = null
+      setMarquee(null)
+      suppressClickRef.current = true
+
+      if (!box || (box.w < MARQUEE_MIN && box.h < MARQUEE_MIN)) {
+        // 单击空白：清空（additive 时保持）
+        if (!m.additive) selectNode(null)
+      } else {
+        const doc = useEditorStore.getState().document
+        const hits = hitTestMarquee(doc, box)
+        if (m.additive) {
+          const set = new Set([...m.baseIds, ...hits])
+          selectNodes([...set])
+        } else {
+          selectNodes(hits)
+        }
+      }
+      return
+    }
+
+    if (wasPanning) suppressClickRef.current = true
+  }, [selectNode, selectNodes])
 
   const handleBackgroundClick = useCallback(() => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      return
+    }
     if (tool === "select") selectNode(null)
   }, [selectNode, tool])
 
@@ -134,7 +369,6 @@ export function CanvasEditor() {
       const frame = frameRef.current
       if (!frame) return
       const rect = frame.getBoundingClientRect()
-      // 转换到 frame 内部坐标（考虑 zoom）
       const x = (e.clientX - rect.left) / zoom
       const y = (e.clientY - rect.top) / zoom
       drawRef.current = { startX: x, startY: y }
@@ -164,7 +398,6 @@ export function CanvasEditor() {
       // 只有足够大的拖拽才创建节点（否则视为点击，切回 select）
       if (w > 10 && h > 10) {
         const newId = addNode(rootId, t("New Region"), "section")
-        // 设置新节点的位置和尺寸（相对 root frame）
         updateCanvasData(newId, {
           rect: {
             x: Math.min(draw.startX, x2),
@@ -182,6 +415,13 @@ export function CanvasEditor() {
     [tool, zoom, rootId, addNode, updateCanvasData, t],
   )
 
+  const cursor =
+    tool === "rectangle"
+      ? "crosshair"
+      : spaceHeld || panRef.current
+        ? "grab"
+        : "default"
+
   return (
     <div
       ref={containerRef}
@@ -189,7 +429,7 @@ export function CanvasEditor() {
       tabIndex={0}
       aria-label={t("Workspace")}
       className="canvas-workspace relative h-full w-full overflow-hidden bg-muted/30"
-      style={{ cursor: tool === "select" ? "grab" : "crosshair" }}
+      style={{ cursor }}
       onPointerDown={(e) => {
         handlePointerDown(e)
         handleDrawPointerDown(e)
@@ -198,6 +438,11 @@ export function CanvasEditor() {
       onPointerUp={(e) => {
         handlePointerUp()
         handleDrawPointerUp(e)
+      }}
+      onPointerCancel={handlePointerUp}
+      onContextMenu={(e) => {
+        // 右键用于 pan，抑制菜单
+        if (tool === "select") e.preventDefault()
       }}
       onClick={handleBackgroundClick}
       onKeyDown={(event) => {
@@ -257,9 +502,22 @@ export function CanvasEditor() {
             <div className="absolute inset-0 z-30 cursor-crosshair" aria-label={t("Rectangle drawing surface")} />
           )}
 
+          {/* 框选矩形 */}
+          {marquee && marquee.w > 0 && marquee.h > 0 && (
+            <div
+              className="pointer-events-none absolute z-40 border border-ring bg-ring/10"
+              style={{
+                left: marquee.x,
+                top: marquee.y,
+                width: marquee.w,
+                height: marquee.h,
+              }}
+            />
+          )}
+
           {/* 吸附辅助线层 */}
           {guides.map((guide) => (
-            <SnapGuideLine key={guide.orientation} guide={guide} viewport={viewport} />
+            <SnapGuideLine key={`${guide.orientation}-${guide.position}`} guide={guide} viewport={viewport} />
           ))}
 
         </div>
