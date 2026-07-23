@@ -1,154 +1,143 @@
 // ============================================================
-//  SnapOverlay —— 吸附引导线 + 间距/尺寸数值标注
-//  坐标为 frame 绝对坐标；字号/线宽按 1/zoom 补偿
+//  SnapOverlay —— tldraw 风格对齐线 + 等间距指示
+//  points：对角连线 + 叉号；gaps：端点 tick + 中线 + 中心 tick
 // ============================================================
-import { useSnapStore, type SnapGuide, type SnapMeasurement } from "./useCanvasSnap"
+import { useSnapStore, type GapsSnapIndicator, type PointsSnapIndicator } from "./useCanvasSnap"
 
 interface SnapOverlayProps {
   zoom: number
 }
 
+const SNAP_COLOR = "rgb(255, 62, 183)" // tldraw pink
+
 export function SnapOverlay({ zoom }: SnapOverlayProps) {
-  const guides = useSnapStore((s) => s.guides)
-  const measurements = useSnapStore((s) => s.measurements)
+  const indicators = useSnapStore((s) => s.indicators)
   const z = Math.max(0.05, zoom)
   const stroke = 1 / z
-  const fontSize = 11 / z
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-50 overflow-visible">
-      {guides.map((g, i) => (
-        <GuideLine key={`${g.orientation}-${g.position}-${g.from}-${i}`} guide={g} stroke={stroke} />
-      ))}
-      {measurements.map((m, i) => (
-        <MeasurementLabel
-          key={`${m.kind}-${m.x1}-${m.y1}-${m.value}-${i}`}
-          m={m}
-          stroke={stroke}
-          fontSize={fontSize}
-        />
-      ))}
-    </div>
-  )
-}
-
-function guideColor(kind: SnapGuide["kind"]): string {
-  switch (kind) {
-    case "spacing":
-    case "pattern":
-      return "bg-pink-500"
-    case "size":
-      return "bg-violet-500"
-    case "padding":
-      return "bg-amber-500"
-    case "grid":
-      return "bg-muted-foreground/40"
-    default:
-      return "bg-pink-500"
-  }
-}
-
-function GuideLine({ guide, stroke }: { guide: SnapGuide; stroke: number }) {
-  const color = guideColor(guide.kind)
-  if (guide.orientation === "v") {
-    const h = Math.max(0, guide.to - guide.from)
-    return (
-      <div
-        className={`absolute ${color}`}
-        style={{
-          left: guide.position,
-          top: guide.from,
-          width: stroke,
-          height: h,
-        }}
-      />
-    )
-  }
-  const w = Math.max(0, guide.to - guide.from)
-  return (
-    <div
-      className={`absolute ${color}`}
-      style={{
-        top: guide.position,
-        left: guide.from,
-        height: stroke,
-        width: w,
-      }}
-    />
-  )
-}
-
-function MeasurementLabel({
-  m,
-  stroke,
-  fontSize,
-}: {
-  m: SnapMeasurement
-  stroke: number
-  fontSize: number
-}) {
-  const midX = (m.x1 + m.x2) / 2
-  const midY = (m.y1 + m.y2) / 2
-  const isH = m.orientation === "h"
-
-  return (
-    <div className="absolute" style={{ left: 0, top: 0 }}>
-      {/* 尺寸/间距连线 */}
-      <div
-        className="absolute bg-pink-500"
-        style={
-          isH
-            ? {
-                left: Math.min(m.x1, m.x2),
-                top: midY,
-                width: Math.abs(m.x2 - m.x1),
-                height: stroke,
-              }
-            : {
-                left: midX,
-                top: Math.min(m.y1, m.y2),
-                width: stroke,
-                height: Math.abs(m.y2 - m.y1),
-              }
-        }
-      />
-      {/* 端点小竖/横 */}
-      {isH ? (
-        <>
-          <div
-            className="absolute bg-pink-500"
-            style={{ left: m.x1, top: midY - 4, width: stroke, height: 8 }}
-          />
-          <div
-            className="absolute bg-pink-500"
-            style={{ left: m.x2, top: midY - 4, width: stroke, height: 8 }}
-          />
-        </>
-      ) : (
-        <>
-          <div
-            className="absolute bg-pink-500"
-            style={{ left: midX - 4, top: m.y1, width: 8, height: stroke }}
-          />
-          <div
-            className="absolute bg-pink-500"
-            style={{ left: midX - 4, top: m.y2, width: 8, height: stroke }}
-          />
-        </>
+    <svg
+      className="pointer-events-none absolute inset-0 z-50 overflow-visible"
+      style={{ width: "100%", height: "100%" }}
+    >
+      {indicators.map((line) =>
+        line.type === "points" ? (
+          <PointsIndicator key={line.id} line={line} zoom={z} stroke={stroke} />
+        ) : (
+          <GapsIndicator key={line.id} line={line} zoom={z} stroke={stroke} />
+        ),
       )}
-      <div
-        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-sm bg-pink-500 px-1 font-mono text-white"
-        style={{
-          left: midX,
-          top: midY,
-          fontSize,
-          lineHeight: 1.2,
-          paddingInline: fontSize * 0.35,
-          paddingBlock: fontSize * 0.15,
-        }}
-      >
-        {m.value}
-      </div>
-    </div>
+    </svg>
+  )
+}
+
+function PointsIndicator({
+  line,
+  zoom,
+  stroke,
+}: {
+  line: PointsSnapIndicator
+  zoom: number
+  stroke: number
+}) {
+  const { points } = line
+  if (points.length === 0) return null
+
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+  for (const p of points) {
+    minX = Math.min(minX, p.x)
+    maxX = Math.max(maxX, p.x)
+    minY = Math.min(minY, p.y)
+    maxY = Math.max(maxY, p.y)
+  }
+
+  // tldraw：若存在 NW 点用 NW→SE，否则 NE→SW 方向
+  let useNWtoSE = false
+  for (const p of points) {
+    if (p.x === minX && p.y === minY) {
+      useNWtoSE = true
+      break
+    }
+  }
+  const x1 = minX
+  const y1 = useNWtoSE ? minY : maxY
+  const x2 = maxX
+  const y2 = useNWtoSE ? maxY : minY
+  const l = 2.5 / zoom
+
+  return (
+    <g stroke={SNAP_COLOR} strokeWidth={stroke} fill="none">
+      <line x1={x1} y1={y1} x2={x2} y2={y2} />
+      {points.map((p, i) => (
+        <g key={i}>
+          <line x1={p.x - l} y1={p.y - l} x2={p.x + l} y2={p.y + l} />
+          <line x1={p.x - l} y1={p.y + l} x2={p.x + l} y2={p.y - l} />
+        </g>
+      ))}
+    </g>
+  )
+}
+
+function GapsIndicator({
+  line,
+  zoom,
+  stroke,
+}: {
+  line: GapsSnapIndicator
+  zoom: number
+  stroke: number
+}) {
+  const { gaps, direction } = line
+  if (gaps.length === 0) return null
+
+  const l = 3.5 / zoom
+  const tickLength = 2 * l
+  const horizontal = direction === "horizontal"
+
+  // 计算共同 breadth 中点（tldraw rangeIntersection 链）
+  let edgeIx: [number, number] = [-Infinity, Infinity]
+  for (const gap of gaps) {
+    const a0 = horizontal ? gap.startEdge[0].y : gap.startEdge[0].x
+    const a1 = horizontal ? gap.startEdge[1].y : gap.startEdge[1].x
+    const b0 = horizontal ? gap.endEdge[0].y : gap.endEdge[0].x
+    const b1 = horizontal ? gap.endEdge[1].y : gap.endEdge[1].x
+    const from = Math.max(edgeIx[0], Math.min(a0, a1), Math.min(b0, b1))
+    const to = Math.min(edgeIx[1], Math.max(a0, a1), Math.max(b0, b1))
+    if (from < to) edgeIx = [from, to]
+  }
+  const mid = (edgeIx[0] + edgeIx[1]) / 2
+
+  return (
+    <g stroke={SNAP_COLOR} strokeWidth={stroke} fill="none">
+      {gaps.map((gap, i) => {
+        if (horizontal) {
+          const x0 = gap.startEdge[0].x
+          const x1 = gap.endEdge[0].x
+          const cx = (x0 + x1) / 2
+          return (
+            <g key={i}>
+              <line x1={x0} y1={mid - tickLength} x2={x0} y2={mid + tickLength} />
+              <line x1={x1} y1={mid - tickLength} x2={x1} y2={mid + tickLength} />
+              <line x1={x0} y1={mid} x2={x1} y2={mid} />
+              <line x1={cx} y1={mid - l} x2={cx} y2={mid + l} />
+            </g>
+          )
+        }
+        const y0 = gap.startEdge[0].y
+        const y1 = gap.endEdge[0].y
+        const cy = (y0 + y1) / 2
+        return (
+          <g key={i}>
+            <line x1={mid - tickLength} y1={y0} x2={mid + tickLength} y2={y0} />
+            <line x1={mid - tickLength} y1={y1} x2={mid + tickLength} y2={y1} />
+            <line x1={mid} y1={y0} x2={mid} y2={y1} />
+            <line x1={mid - l} y1={cy} x2={mid + l} y2={cy} />
+          </g>
+        )
+      })}
+    </g>
   )
 }

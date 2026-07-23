@@ -65,7 +65,7 @@ React Flow v12 + `d3-hierarchy` 的 `d3.tree().nodeSize([104, 284])`。从扁平
 - **位移**：多选顶层整组同移；方向键 1px / Shift+方向键 10px。
 - **历史**：store 级 history batch——live 更新自动记下 baseline，`sealHistoryBatch` 压成一条 undo。拖拽松手 / 方向键停顿 400ms 后 seal；其它 commit/undo 也会自动 seal。
 - **框选**：空白处拖拽 marquee（Shift 追加）；`Space`/中键/右键拖 = pan。root 本体不拖移，留给框选。
-- **智能吸附**（`canvas/snap/`）：边/中心对齐、等间距、行列表模式、同宽高、父内边距、布局/像素网格；进入/退出迟滞；zoom 自适应阈值；`SnapOverlay` 显示短引导线与间距/尺寸数值。Alt 关闭组件吸附。
+- **智能吸附**（`canvas/snap/`，移植 tldraw `BoundsSnaps`）：选区角点/中心 ↔ 目标角点/中心点对齐；gap 中心夹入 + gap 等距复制（等间距）；阈值 `8/zoom`；`SnapOverlay` 粉线+叉号+间距 tick。Alt 关闭。
 
 ## 设计系统
 

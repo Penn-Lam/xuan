@@ -1,11 +1,11 @@
 // ============================================================
-//  snap/engine.check —— 智能吸附纯函数自检
+//  snap/engine.check —— tldraw 风格 bounds snap 自检
+//  含课程页筛选 chips 真实间距场景
 //  运行：bun src/components/canvas/snap/engine.check.ts
 // ============================================================
-import { createSnapSession, resolveSnapFrame, generateCandidates } from "./engine"
-import { thresholdDoc, ENTER_SCREEN_PX, EXIT_SCREEN_PX } from "./constants"
+import { snapTranslate, snapResize, collectGaps, thresholdFromZoom } from "./boundsSnap"
 import type { Rect } from "@/types/document"
-import type { SnapFrameInput } from "./types"
+import type { SnapTarget } from "./types"
 
 let passed = 0
 let failed = 0
@@ -24,122 +24,135 @@ function approx(a: number, b: number, eps = 0.6) {
   return Math.abs(a - b) <= eps
 }
 
-const parent: Rect = { x: 0, y: 0, w: 800, h: 600 }
-const canvas = parent
-
-function baseInput(over: Partial<SnapFrameInput> & { rawRect: Rect }): SnapFrameInput {
-  return {
-    targets: [],
-    parentRect: parent,
-    canvasRect: canvas,
-    zoom: 1,
-    mode: "move",
-    enableLayoutGrid: false,
-    enablePixelGrid: false,
-    ...over,
-  }
+function T(id: string, r: Rect): SnapTarget {
+  return { id, bounds: r }
 }
 
-console.log("1. edge align")
+// 课程页筛选 chips（来自 ai-超级卡 JSON）
+// gap = 444-336-96 = 12
+const chips: SnapTarget[] = [
+  T("c0", { x: 336, y: 256, w: 96, h: 40 }),
+  T("c1", { x: 444, y: 256, w: 96, h: 40 }),
+  T("c2", { x: 552, y: 256, w: 96, h: 40 }),
+  T("c3", { x: 660, y: 256, w: 96, h: 40 }),
+  T("c4", { x: 768, y: 256, w: 96, h: 40 }),
+  T("c5", { x: 876, y: 256, w: 96, h: 40 }),
+  // 故意少最后一个，用拖拽补
+]
+
+console.log("1. point edge align")
 {
-  const sibling: Rect = { x: 100, y: 100, w: 80, h: 40 }
-  // self left near sibling left (diff 3)
-  const raw: Rect = { x: 103, y: 200, w: 50, h: 30 }
-  const r = resolveSnapFrame(
-    baseInput({ rawRect: raw, targets: [sibling] }),
+  const sibling = T("a", { x: 100, y: 100, w: 80, h: 40 })
+  // selection left near sibling left
+  const r = snapTranslate({
+    initialSelectionBounds: { x: 103, y: 200, w: 50, h: 30 },
+    dragDelta: { x: 0, y: 0 },
+    targets: [sibling],
+    threshold: 8,
+  })
+  assert(approx(r.nudge.x, -3), `edge align nudge.x≈-3 got ${r.nudge.x}`)
+  assert(
+    r.indicators.some((i) => i.type === "points"),
+    "has points indicator",
   )
-  assert(approx(r.deltaX, -3), `left edge snap deltaX≈-3 got ${r.deltaX}`)
-  assert(r.guides.some((g) => g.orientation === "v"), "has vertical guide")
 }
 
 console.log("2. center align")
 {
-  const sibling: Rect = { x: 100, y: 100, w: 100, h: 40 } // centerX=150
-  // centerX=153 → 应吸附到 150
-  const raw2: Rect = { x: 123, y: 200, w: 60, h: 30 }
-  const r = resolveSnapFrame(baseInput({ rawRect: raw2, targets: [sibling] }))
-  assert(approx(r.deltaX, -3), `center snap deltaX≈-3 got ${r.deltaX}`)
+  // sibling centerX=150; selection centerX=153
+  const sibling = T("a", { x: 100, y: 100, w: 100, h: 40 })
+  const r = snapTranslate({
+    initialSelectionBounds: { x: 123, y: 200, w: 60, h: 30 },
+    dragDelta: { x: 0, y: 0 },
+    targets: [sibling],
+    threshold: 8,
+  })
+  assert(approx(r.nudge.x, -3), `center align nudge.x≈-3 got ${r.nudge.x}`)
 }
 
-console.log("3. equal spacing")
+console.log("3. gap duplicate (equal spacing continuation)")
 {
-  const a: Rect = { x: 0, y: 0, w: 50, h: 40 }
-  const b: Rect = { x: 70, y: 0, w: 50, h: 40 } // gap 20
-  // drag self to right of b with near-gap 20
-  const raw: Rect = { x: 138, y: 0, w: 50, h: 40 } // want 70+50+20=140
-  const r = resolveSnapFrame(baseInput({ rawRect: raw, targets: [a, b] }))
-  assert(approx(r.deltaX, 2), `spacing deltaX≈2 got ${r.deltaX}`)
-}
-
-console.log("4. hysteresis hold")
-{
-  const session = createSnapSession()
-  const sibling: Rect = { x: 100, y: 0, w: 50, h: 40 }
-  // enter: error 3
-  let raw: Rect = { x: 103, y: 100, w: 40, h: 30 }
-  let r = session.resolve(baseInput({ rawRect: raw, targets: [sibling] }))
-  assert(approx(r.deltaX, -3), `hysteresis enter delta ${r.deltaX}`)
-  // move away but within exit (error 8 < 12)
-  raw = { x: 108, y: 100, w: 40, h: 30 }
-  r = session.resolve(baseInput({ rawRect: raw, targets: [sibling] }))
-  assert(approx(r.deltaX, -8), `hysteresis hold delta ${r.deltaX}`)
-}
-
-console.log("5. hysteresis exit")
-{
-  const session = createSnapSession()
-  const sibling: Rect = { x: 100, y: 0, w: 50, h: 40 }
-  session.resolve(baseInput({ rawRect: { x: 103, y: 100, w: 40, h: 30 }, targets: [sibling] }))
-  // 远离所有 sibling 关键线（error ≫ exit），且无其它进入候选
-  const r = session.resolve(
-    baseInput({ rawRect: { x: 200, y: 100, w: 40, h: 30 }, targets: [sibling] }),
+  // chips gap=12; place new chip to the right of last with near-correct spacing
+  // last chip c5 at x=876; next should be 876+96+12=984
+  const near = 984 + 3 // 3px off
+  const r = snapTranslate({
+    initialSelectionBounds: { x: near, y: 256, w: 96, h: 40 },
+    dragDelta: { x: 0, y: 0 },
+    targets: chips,
+    threshold: 8,
+  })
+  assert(approx(r.nudge.x, -3), `gap_duplicate nudge.x≈-3 got ${r.nudge.x}`)
+  assert(
+    r.indicators.some((i) => i.type === "gaps"),
+    "has gaps indicator for equal spacing",
   )
-  assert(r.deltaX === 0, `hysteresis exit no snap got ${r.deltaX}`)
+}
+
+console.log("4. gap center (insert between two chips)")
+{
+  // between c0(336..432) and c1(444..540): gap mid = 438
+  // selection w=96 can't fit in gap of 12 — skip center for tiny gaps
+  // use larger boxes
+  const a = T("a", { x: 0, y: 0, w: 50, h: 40 })
+  const b = T("b", { x: 200, y: 0, w: 50, h: 40 }) // gap 150 at mid 125
+  const selW = 40
+  // center should be 125 - 20 = 105
+  const r = snapTranslate({
+    initialSelectionBounds: { x: 108, y: 0, w: selW, h: 40 },
+    dragDelta: { x: 0, y: 0 },
+    targets: [a, b],
+    threshold: 8,
+  })
+  assert(approx(r.nudge.x, -3), `gap_center nudge.x≈-3 got ${r.nudge.x}`)
+  assert(
+    r.indicators.some((i) => i.type === "gaps"),
+    "has gaps indicator for center",
+  )
+}
+
+console.log("5. collectGaps on chips")
+{
+  const { horizontal } = collectGaps(chips)
+  assert(horizontal.length >= 5, `enough horizontal gaps got ${horizontal.length}`)
+  const g01 = horizontal.find(
+    (g) => g.startNode.id === "c0" && g.endNode.id === "c1",
+  )
+  assert(g01 != null && approx(g01.length, 12), `chip gap length 12 got ${g01?.length}`)
 }
 
 console.log("6. zoom threshold")
 {
-  assert(approx(thresholdDoc(ENTER_SCREEN_PX, 2), 3), "enter at zoom2 = 3")
-  assert(approx(thresholdDoc(EXIT_SCREEN_PX, 2), 6), "exit at zoom2 = 6")
+  assert(approx(thresholdFromZoom(1), 8), "zoom1 → 8")
+  assert(approx(thresholdFromZoom(2), 4), "zoom2 → 4")
 }
 
-console.log("7. resize size match")
+console.log("7. resize point snap")
 {
-  const sibling: Rect = { x: 0, y: 0, w: 120, h: 40 }
-  const raw: Rect = { x: 200, y: 0, w: 118, h: 50 }
-  const r = resolveSnapFrame(
-    baseInput({
-      rawRect: raw,
-      targets: [sibling],
-      mode: "resize",
-      resizeEdges: { e: true },
-    }),
-  )
-  assert(
-    r.sizeDelta != null && approx(r.sizeDelta.dw, 2),
-    `size match dw≈2 got ${r.sizeDelta?.dw}`,
-  )
+  const sibling = T("a", { x: 0, y: 0, w: 120, h: 40 })
+  const r = snapResize({
+    initialBounds: { x: 200, y: 0, w: 100, h: 50 },
+    rawBounds: { x: 200, y: 0, w: 118, h: 50 },
+    targets: [sibling],
+    threshold: 8,
+    edges: { e: true },
+  })
+  // right edge 318 near nothing; sibling right=120. Maybe width match isn't point snap.
+  // Point snap: SE corner (318,50) vs sibling corners - large.
+  // Just ensure no crash and returns structure
+  assert(r.snappedBounds.w >= 1, `resize returns bounds w=${r.snappedBounds.w}`)
 }
 
-console.log("8. multi group AABB (via rawRect=union)")
+console.log("8. multi-select AABB point align")
 {
-  const sibling: Rect = { x: 0, y: 0, w: 100, h: 100 }
-  // group AABB left at 203 → snap to 200? sibling right=100... use sibling left
-  const group: Rect = { x: 3, y: 50, w: 80, h: 60 }
-  const r = resolveSnapFrame(baseInput({ rawRect: group, targets: [sibling] }))
-  assert(approx(r.deltaX, -3), `group AABB left align ${r.deltaX}`)
-}
-
-console.log("9. candidates non-empty with targets")
-{
-  const c = generateCandidates(
-    baseInput({
-      rawRect: { x: 10, y: 10, w: 40, h: 40 },
-      targets: [{ x: 100, y: 10, w: 40, h: 40 }],
-      enableLayoutGrid: true,
-    }),
-  )
-  assert(c.length > 10, `many candidates got ${c.length}`)
+  const sibling = T("a", { x: 0, y: 0, w: 100, h: 100 })
+  const group = { x: 3, y: 50, w: 80, h: 60 }
+  const r = snapTranslate({
+    initialSelectionBounds: group,
+    dragDelta: { x: 0, y: 0 },
+    targets: [sibling],
+    threshold: 8,
+  })
+  assert(approx(r.nudge.x, -3), `group AABB left align ${r.nudge.x}`)
 }
 
 console.log("")

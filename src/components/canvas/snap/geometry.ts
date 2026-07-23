@@ -1,23 +1,30 @@
 // ============================================================
-//  snap/geometry —— 吸附用几何小工具
+//  snap/geometry —— 区间与矩形工具（对齐 tldraw primitives）
 // ============================================================
 import type { Rect } from "@/types/document"
-import type { RectEdges } from "./types"
+import type { Vec2 } from "./types"
 
-export function edgesOf(r: Rect): RectEdges {
-  return {
-    left: r.x,
-    centerX: r.x + r.w / 2,
-    right: r.x + r.w,
-    top: r.y,
-    centerY: r.y + r.h / 2,
-    bottom: r.y + r.h,
-    w: r.w,
-    h: r.h,
-  }
+export function round(x: number): number {
+  // 与 tldraw 一致：抑制浮点误差
+  return Math.round(x * 1e8) / 1e8
 }
 
-/** 多 rect 外接矩形 */
+export function rangesOverlap(a0: number, a1: number, b0: number, b1: number): boolean {
+  return a0 < b1 && b0 < a1
+}
+
+export function rangeIntersection(
+  a0: number,
+  a1: number,
+  b0: number,
+  b1: number,
+): [number, number] | null {
+  const from = Math.max(a0, b0)
+  const to = Math.min(a1, b1)
+  if (from >= to) return null
+  return [from, to]
+}
+
 export function unionRects(rects: Rect[]): Rect | null {
   if (rects.length === 0) return null
   let minX = Infinity
@@ -33,49 +40,56 @@ export function unionRects(rects: Rect[]): Rect | null {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
 }
 
-/** 两区间投影重叠长度 */
-export function rangeOverlap(
-  a0: number,
-  a1: number,
-  b0: number,
-  b1: number,
-): number {
-  return Math.max(0, Math.min(a1, b1) - Math.max(a0, b0))
-}
-
-/** 正交轴投影重叠区间（用于短引导线 from/to） */
-export function guideSpan(
-  selfFrom: number,
-  selfTo: number,
-  targetFrom: number,
-  targetTo: number,
-  pad = 4,
-): { from: number; to: number } {
-  const from = Math.min(selfFrom, targetFrom) - pad
-  const to = Math.max(selfTo, targetTo) + pad
-  return { from, to }
-}
-
-/** 平移 rect */
 export function translateRect(r: Rect, dx: number, dy: number): Rect {
   return { x: r.x + dx, y: r.y + dy, w: r.w, h: r.h }
 }
 
-/** 众数 gap（浮点按 round 归并） */
-export function modeGap(gaps: number[], eps = 0.5): number | null {
-  if (gaps.length === 0) return null
-  const buckets = new Map<number, { sum: number; n: number }>()
-  for (const g of gaps) {
-    if (g <= 0) continue
-    const key = Math.round(g / eps) * eps
-    const b = buckets.get(key) ?? { sum: 0, n: 0 }
-    b.sum += g
-    b.n += 1
-    buckets.set(key, b)
+/** 矩形四角 + 中心（tldraw cornersAndCenter） */
+export function cornersAndCenter(r: Rect): Vec2[] {
+  const { x, y, w, h } = r
+  return [
+    { x, y },
+    { x: x + w, y },
+    { x: x + w, y: y + h },
+    { x, y: y + h },
+    { x: x + w / 2, y: y + h / 2 },
+  ]
+}
+
+export function rectSides(r: Rect): {
+  top: [Vec2, Vec2]
+  right: [Vec2, Vec2]
+  bottom: [Vec2, Vec2]
+  left: [Vec2, Vec2]
+} {
+  const { x, y, w, h } = r
+  return {
+    top: [
+      { x, y },
+      { x: x + w, y },
+    ],
+    right: [
+      { x: x + w, y },
+      { x: x + w, y: y + h },
+    ],
+    // bottom/left 升序（与 tldraw selectionSides 一致）
+    bottom: [
+      { x, y: y + h },
+      { x: x + w, y: y + h },
+    ],
+    left: [
+      { x, y },
+      { x, y: y + h },
+    ],
   }
-  let best: { avg: number; n: number } | null = null
-  for (const b of buckets.values()) {
-    if (!best || b.n > best.n) best = { avg: b.sum / b.n, n: b.n }
+}
+
+export function dedupePoints(points: Vec2[]): Vec2[] {
+  const out: Vec2[] = []
+  for (const p of points) {
+    if (!out.some((q) => round(q.x) === round(p.x) && round(q.y) === round(p.y))) {
+      out.push(p)
+    }
   }
-  return best && best.n >= 1 ? best.avg : null
+  return out
 }

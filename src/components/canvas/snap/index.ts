@@ -1,15 +1,21 @@
 // ============================================================
-//  snap/ —— 智能吸附公共出口
+//  snap/ —— tldraw 风格智能吸附
 // ============================================================
 export type {
-  Axis,
-  SnapKind,
+  Vec2,
+  PointsSnapIndicator,
+  GapsSnapIndicator,
+  SnapIndicator,
+  SnapTarget,
   SnapGuide,
-  SnapMeasurement,
-  SnapCandidate,
-  SnapFrameInput,
-  SnapFrameResult,
 } from "./types"
-export { SnapSession, createSnapSession, resolveSnapFrame, generateCandidates } from "./engine"
-export { ENTER_SCREEN_PX, EXIT_SCREEN_PX, thresholdDoc } from "./constants"
+export {
+  createSnapSession,
+  buildSnapTargets,
+  thresholdFromZoom,
+  SNAP_THRESHOLD_SCREEN,
+  type SnapSession,
+  type SnapSessionResult,
+} from "./engine"
+export { snapTranslate, snapResize, collectGaps } from "./boundsSnap"
 export { unionRects } from "./geometry"

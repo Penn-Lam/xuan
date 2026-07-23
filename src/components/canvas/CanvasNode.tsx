@@ -1,8 +1,6 @@
 // ============================================================
 //  CanvasNode —— 嵌套绝对定位节点
-//  递归渲染子节点；选中时显示 8 方向 resize 手柄
-//  多选整组同移；拖中 live 写 rect，松手一条 undo
-//  root 本体不拖移（留给框选）；智能吸附走 SnapSession
+//  吸附：tldraw BoundsSnaps（点对齐 + gap 等距）
 // ============================================================
 import { memo, useCallback, useRef } from "react"
 import { Cube } from "@phosphor-icons/react"
@@ -11,6 +9,7 @@ import { MIN_SIZE, absoluteRect, topLevelSelectedIds } from "@/lib/geometry"
 import { cn } from "@/lib/utils"
 import type { Rect } from "@/types/document"
 import {
+  buildSnapTargets,
   createSnapSession,
   unionRects,
   useSnapStore,
@@ -32,7 +31,6 @@ interface CanvasNodeProps {
 interface DragItem {
   id: string
   origRect: Rect
-  /** 拖拽开始时该节点的绝对 rect */
   origAbs: Rect
   parentRect: Rect
 }
@@ -50,7 +48,7 @@ function CanvasNodeBase({
   const toggleNodeSelection = useEditorStore((s) => s.toggleNodeSelection)
   const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
   const sealHistoryBatch = useEditorStore((s) => s.sealHistoryBatch)
-  const setFeedback = useSnapStore((s) => s.setFeedback)
+  const setIndicators = useSnapStore((s) => s.setIndicators)
   const clearGuides = useSnapStore((s) => s.clearGuides)
 
   const node = document.nodes[nodeId]
@@ -62,13 +60,11 @@ function CanvasNodeBase({
     startY: number
     mode: "move" | ResizeDir
     items: DragItem[]
-    targetRects: Rect[]
+    targets: ReturnType<typeof buildSnapTargets>
     parentRect: Rect
-    canvasRect: Rect
     primaryId: string
     dirty: boolean
     session: SnapSession
-    /** 多选时组外接矩形（相对 orig） */
     groupOrigAbs: Rect
   } | null>(null)
 
@@ -114,11 +110,10 @@ function CanvasNodeBase({
           const parentRect = n.parentId
             ? absoluteRect(doc, n.parentId)
             : { ...c.rect }
-          const origAbs = absoluteRect(doc, id)
           return {
             id,
             origRect: { ...c.rect },
-            origAbs,
+            origAbs: absoluteRect(doc, id),
             parentRect,
           }
         })
@@ -126,11 +121,11 @@ function CanvasNodeBase({
 
       if (items.length === 0) return
 
-      const targetRects: Rect[] = []
+      const siblingRects: { id: string; bounds: Rect }[] = []
       if (currentNode.parentId) {
         for (const cid of doc.nodes[currentNode.parentId].childrenIds) {
           if (movingSet.has(cid)) continue
-          targetRects.push(absoluteRect(doc, cid))
+          siblingRects.push({ id: cid, bounds: absoluteRect(doc, cid) })
         }
       }
 
@@ -138,6 +133,13 @@ function CanvasNodeBase({
         ? absoluteRect(doc, currentNode.parentId)
         : absoluteRect(doc, doc.rootId)
       const canvasRect = absoluteRect(doc, doc.rootId)
+      const targets = buildSnapTargets({
+        siblingRects,
+        parentRect,
+        parentId: currentNode.parentId ?? doc.rootId,
+        canvasRect,
+        canvasId: doc.rootId,
+      })
       const groupOrigAbs =
         unionRects(items.map((i) => i.origAbs)) ?? items[0].origAbs
 
@@ -148,9 +150,8 @@ function CanvasNodeBase({
         startY: e.clientY,
         mode,
         items,
-        targetRects,
+        targets,
         parentRect,
-        canvasRect,
         primaryId: nodeId,
         dirty: false,
         session: createSnapSession(),
@@ -170,29 +171,23 @@ function CanvasNodeBase({
           let dx = rawDx
           let dy = rawDy
 
-          const rawGroup: Rect = {
-            x: drag.groupOrigAbs.x + dx,
-            y: drag.groupOrigAbs.y + dy,
-            w: drag.groupOrigAbs.w,
-            h: drag.groupOrigAbs.h,
-          }
-
           if (snapOn) {
-            const result = drag.session.resolve({
-              rawRect: rawGroup,
-              targets: drag.targetRects,
-              parentRect: drag.parentRect,
-              canvasRect: drag.canvasRect,
+            const result = drag.session.resolveTranslate({
+              initialSelectionBounds: drag.groupOrigAbs,
+              dragDelta: { x: rawDx, y: rawDy },
+              targets: drag.targets,
               zoom,
-              mode: "move",
-              enableLayoutGrid: true,
-              enablePixelGrid: snapToPixelGrid,
             })
-            dx += result.deltaX
-            dy += result.deltaY
-            setFeedback(result.guides, result.measurements)
+            dx = rawDx + result.nudgeX
+            dy = rawDy + result.nudgeY
+            setIndicators(result.indicators)
           } else {
             clearGuides()
+          }
+
+          // 可选：像素网格在组件吸附之后微调（不画指示线）
+          if (snapToPixelGrid && !ev.altKey && !snapOn) {
+            // only pixel grid — handled lightly via rounded coords if needed
           }
 
           drag.dirty = true
@@ -226,7 +221,6 @@ function CanvasNodeBase({
           y = primary.origRect.y + (primary.origRect.h - h)
         }
 
-        // 相对 → 绝对 raw
         let absRect: Rect = {
           x: primary.parentRect.x + x,
           y: primary.parentRect.y + y,
@@ -241,24 +235,19 @@ function CanvasNodeBase({
             e: drag.mode.includes("e"),
             w: drag.mode.includes("w"),
           }
-          const result = drag.session.resolve({
-            rawRect: absRect,
-            targets: drag.targetRects,
-            parentRect: drag.parentRect,
-            canvasRect: drag.canvasRect,
+          const result = drag.session.resolveResize({
+            initialBounds: primary.origAbs,
+            rawBounds: absRect,
+            targets: drag.targets,
             zoom,
-            mode: "resize",
-            resizeEdges: edges,
-            enableLayoutGrid: false,
-            enablePixelGrid: false,
+            edges,
           })
-          // resize 候选统一走 sizeDelta / adjustedRect
-          absRect = result.adjustedRect
+          absRect = result.snappedBounds
           x = absRect.x - primary.parentRect.x
           y = absRect.y - primary.parentRect.y
           w = Math.max(MIN_SIZE, absRect.w)
           h = Math.max(MIN_SIZE, absRect.h)
-          setFeedback(result.guides, result.measurements)
+          setIndicators(result.indicators)
         } else {
           clearGuides()
         }
@@ -288,7 +277,7 @@ function CanvasNodeBase({
       toggleNodeSelection,
       updateCanvasRects,
       sealHistoryBatch,
-      setFeedback,
+      setIndicators,
       clearGuides,
       zoom,
       snapToComponents,
