@@ -18,6 +18,7 @@ import { useEditorStore } from "@/store/useEditorStore"
 import { hitTestMarquee, topLevelSelectedIds } from "@/lib/geometry"
 import type { Rect } from "@/types/document"
 import { CanvasNode } from "./CanvasNode"
+import { SelectionOverlay } from "./SelectionOverlay"
 import { SnapOverlay } from "./SnapOverlay"
 import { Button } from "@/components/ui/button"
 import {
@@ -99,16 +100,33 @@ export function CanvasEditor() {
   /** 刚完成框选时抑制 background click 清空 */
   const suppressClickRef = useRef(false)
 
-  // 用原生事件监听器处理 wheel（React onWheel 是 passive，无法 preventDefault）
+  // 滚轮缩放：以光标为不动点（ctrl/meta + wheel）
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault()
-        const delta = -e.deltaY * 0.001
-        setZoom((z) => Math.min(4, Math.max(0.1, z + delta)))
-      }
+      if (!(e.ctrlKey || e.metaKey)) return
+      e.preventDefault()
+
+      const rect = el.getBoundingClientRect()
+      // 指针相对容器
+      const sx = e.clientX - rect.left
+      const sy = e.clientY - rect.top
+      const cx = rect.width / 2
+      const cy = rect.height / 2
+
+      const delta = -e.deltaY * 0.001
+      setZoom((z0) => {
+        const z1 = Math.min(4, Math.max(0.1, z0 + delta))
+        if (z1 === z0) return z0
+        // 保持光标下内容点不动：
+        // sx = cx + pan.x + z * localX  →  pan' = sx - cx - z' * (sx - cx - pan) / z
+        setPan((p0) => ({
+          x: sx - cx - (z1 * (sx - cx - p0.x)) / z0,
+          y: sy - cy - (z1 * (sy - cy - p0.y)) / z0,
+        }))
+        return z1
+      })
     }
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
@@ -497,6 +515,11 @@ export function CanvasEditor() {
             />
           )}
 
+          {/* 选区一等公民：AABB 框 + 组手柄 + 尺寸 */}
+          {tool === "select" && (
+            <SelectionOverlay zoom={zoom} snapToComponents={snapToComponents} />
+          )}
+
           {tool === "rectangle" && (
             <div className="absolute inset-0 z-30 cursor-crosshair" aria-label={t("Rectangle drawing surface")} />
           )}
@@ -514,7 +537,7 @@ export function CanvasEditor() {
             />
           )}
 
-          {/* 智能吸附引导线 + 间距/尺寸标注 */}
+          {/* 智能吸附引导线 */}
           <SnapOverlay zoom={zoom} />
 
         </div>

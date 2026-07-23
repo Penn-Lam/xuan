@@ -232,31 +232,11 @@
                 "children": []
               },
               {
-                "id": "node_weguktlb1y",
-                "name": "Security Tab",
-                "role": "navigation-item",
-                "rect": {
-                  "x": 24,
-                  "y": 354,
-                  "w": 240,
-                  "h": 40
-                },
-                "shape": "rectangle",
-                "component": {
-                  "ref": "SidebarMenuButton",
-                  "props": {
-                    "label": "安全"
-                  }
-                },
-                "content": null,
-                "children": []
-              },
-              {
                 "id": "node_lq1z72pfws",
                 "name": "Notifications Tab",
                 "role": "navigation-item",
                 "rect": {
-                  "x": 24,
+                  "x": 16,
                   "y": 402,
                   "w": 240,
                   "h": 40
@@ -603,7 +583,7 @@
                 "name": "AIGC筛选",
                 "role": "navigation-item",
                 "rect": {
-                  "x": 660,
+                  "x": 708,
                   "y": 256,
                   "w": 96,
                   "h": 40
@@ -629,7 +609,7 @@
                 "name": "办公筛选",
                 "role": "navigation-item",
                 "rect": {
-                  "x": 768,
+                  "x": 816,
                   "y": 256,
                   "w": 96,
                   "h": 40
@@ -655,7 +635,7 @@
                 "name": "学习筛选",
                 "role": "navigation-item",
                 "rect": {
-                  "x": 876,
+                  "x": 924,
                   "y": 256,
                   "w": 96,
                   "h": 40
@@ -681,7 +661,7 @@
                 "name": "设计筛选",
                 "role": "navigation-item",
                 "rect": {
-                  "x": 984,
+                  "x": 1013.0251142983094,
                   "y": 256,
                   "w": 96,
                   "h": 40
@@ -930,7 +910,7 @@
                     "name": "铱石 ASE 平台课程卡片",
                     "role": "card",
                     "rect": {
-                      "x": 612,
+                      "x": 680.0185864145549,
                       "y": 356,
                       "w": 252,
                       "h": 244
@@ -949,7 +929,7 @@
                         "name": "铱石 ASE 平台封面",
                         "role": "media",
                         "rect": {
-                          "x": 612,
+                          "x": 680.0185864145549,
                           "y": 356,
                           "w": 252,
                           "h": 140
@@ -971,7 +951,7 @@
                         "name": "铱石 ASE 平台课程标题",
                         "role": "heading",
                         "rect": {
-                          "x": 624,
+                          "x": 692.0185864145549,
                           "y": 505,
                           "w": 228,
                           "h": 32
@@ -988,7 +968,7 @@
                         "name": "铱石 ASE 平台讲师信息",
                         "role": "group",
                         "rect": {
-                          "x": 624,
+                          "x": 692.0185864145549,
                           "y": 546,
                           "w": 228,
                           "h": 42
@@ -1002,7 +982,7 @@
                             "name": "铱石 ASE 平台讲师头像",
                             "role": "image",
                             "rect": {
-                              "x": 624,
+                              "x": 692.0185864145549,
                               "y": 549,
                               "w": 36,
                               "h": 36
@@ -1025,7 +1005,7 @@
                             "name": "铱石 ASE 平台讲师文字",
                             "role": "group",
                             "rect": {
-                              "x": 670,
+                              "x": 738.0185864145549,
                               "y": 546,
                               "w": 182,
                               "h": 42
@@ -1039,7 +1019,7 @@
                                 "name": "铱石 ASE 平台讲师姓名",
                                 "role": "label",
                                 "rect": {
-                                  "x": 670,
+                                  "x": 738.0185864145549,
                                   "y": 546,
                                   "w": 182,
                                   "h": 18
@@ -1056,7 +1036,7 @@
                                 "name": "铱石 ASE 平台讲师简介",
                                 "role": "description",
                                 "rect": {
-                                  "x": 670,
+                                  "x": 738.0185864145549,
                                   "y": 566,
                                   "w": 182,
                                   "h": 22

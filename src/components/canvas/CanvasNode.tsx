@@ -1,11 +1,12 @@
 // ============================================================
 //  CanvasNode —— 嵌套绝对定位节点
-//  吸附：tldraw BoundsSnaps（点对齐 + gap 等距）
+//  仅负责内容渲染 + 拖移；resize 由 SelectionOverlay 统一处理
+//  吸附：tldraw BoundsSnaps；Shift 锁轴
 // ============================================================
 import { memo, useCallback, useRef } from "react"
 import { Cube } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
-import { MIN_SIZE, absoluteRect, topLevelSelectedIds } from "@/lib/geometry"
+import { absoluteRect, topLevelSelectedIds } from "@/lib/geometry"
 import { cn } from "@/lib/utils"
 import type { Rect } from "@/types/document"
 import {
@@ -15,10 +16,10 @@ import {
   useSnapStore,
   type SnapSession,
 } from "./useCanvasSnap"
-
-type ResizeDir = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
-
-const HANDLES: ResizeDir[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"]
+import {
+  applyAxisLock,
+  lockedAxisFromDelta,
+} from "./selectionHandles"
 
 interface CanvasNodeProps {
   nodeId: string
@@ -39,7 +40,6 @@ function CanvasNodeBase({
   nodeId,
   zoom = 1,
   snapToComponents = true,
-  snapToPixelGrid = true,
   showPixelGrid = false,
 }: CanvasNodeProps) {
   const document = useEditorStore((s) => s.document)
@@ -58,24 +58,22 @@ function CanvasNodeBase({
   const dragRef = useRef<{
     startX: number
     startY: number
-    mode: "move" | ResizeDir
     items: DragItem[]
     targets: ReturnType<typeof buildSnapTargets>
-    parentRect: Rect
-    primaryId: string
     dirty: boolean
     session: SnapSession
     groupOrigAbs: Rect
   } | null>(null)
 
   const handlePointerDown = useCallback(
-    (e: React.PointerEvent, mode: "move" | ResizeDir) => {
+    (e: React.PointerEvent) => {
       const state = useEditorStore.getState()
       const doc = state.document
       const currentNode = doc.nodes[nodeId]
       if (!currentNode || !doc.canvas[nodeId]) return
 
-      if (!currentNode.parentId && mode === "move") {
+      // root 本体留给框选
+      if (!currentNode.parentId) {
         if (e.altKey) {
           e.stopPropagation()
           e.preventDefault()
@@ -86,7 +84,7 @@ function CanvasNodeBase({
 
       e.stopPropagation()
       e.preventDefault()
-      if (e.altKey && mode === "move") {
+      if (e.altKey) {
         toggleNodeSelection(nodeId)
         return
       }
@@ -97,8 +95,7 @@ function CanvasNodeBase({
         activeIds = [nodeId]
       }
 
-      const ids =
-        mode === "move" ? topLevelSelectedIds(doc, activeIds) : [nodeId]
+      const ids = topLevelSelectedIds(doc, activeIds)
       if (ids.length === 0) return
       const movingSet = new Set(ids)
 
@@ -129,14 +126,12 @@ function CanvasNodeBase({
         }
       }
 
-      const parentRect = currentNode.parentId
-        ? absoluteRect(doc, currentNode.parentId)
-        : absoluteRect(doc, doc.rootId)
+      const parentRect = absoluteRect(doc, currentNode.parentId)
       const canvasRect = absoluteRect(doc, doc.rootId)
       const targets = buildSnapTargets({
         siblingRects,
         parentRect,
-        parentId: currentNode.parentId ?? doc.rootId,
+        parentId: currentNode.parentId,
         canvasRect,
         canvasId: doc.rootId,
       })
@@ -148,11 +143,8 @@ function CanvasNodeBase({
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
-        mode,
         items,
         targets,
-        parentRect,
-        primaryId: nodeId,
         dirty: false,
         session: createSnapSession(),
         groupOrigAbs,
@@ -165,97 +157,44 @@ function CanvasNodeBase({
         const rawDy = (ev.clientY - drag.startY) / zoom
         if (!drag.dirty && Math.abs(rawDx) < 0.5 && Math.abs(rawDy) < 0.5) return
 
+        // Shift：锁轴
+        const locked = lockedAxisFromDelta(rawDx, rawDy, ev.shiftKey)
+        const lockedDelta = applyAxisLock(rawDx, rawDy, locked)
+        let dx = lockedDelta.dx
+        let dy = lockedDelta.dy
+
         const snapOn = snapToComponents && !ev.altKey
-
-        if (drag.mode === "move") {
-          let dx = rawDx
-          let dy = rawDy
-
-          if (snapOn) {
-            const result = drag.session.resolveTranslate({
-              initialSelectionBounds: drag.groupOrigAbs,
-              dragDelta: { x: rawDx, y: rawDy },
-              targets: drag.targets,
-              zoom,
-            })
-            dx = rawDx + result.nudgeX
-            dy = rawDy + result.nudgeY
-            setIndicators(result.indicators)
-          } else {
-            clearGuides()
-          }
-
-          // 可选：像素网格在组件吸附之后微调（不画指示线）
-          if (snapToPixelGrid && !ev.altKey && !snapOn) {
-            // only pixel grid — handled lightly via rounded coords if needed
-          }
-
-          drag.dirty = true
-          updateCanvasRects(
-            drag.items.map((item) => ({
-              id: item.id,
-              rect: {
-                x: item.origRect.x + dx,
-                y: item.origRect.y + dy,
-                w: item.origRect.w,
-                h: item.origRect.h,
-              },
-            })),
-            { history: false },
-          )
-          return
-        }
-
-        // resize
-        const primary = drag.items.find((item) => item.id === drag.primaryId)
-        if (!primary) return
-        let { x, y, w, h } = primary.origRect
-        if (drag.mode.includes("e")) w = Math.max(MIN_SIZE, primary.origRect.w + rawDx)
-        if (drag.mode.includes("s")) h = Math.max(MIN_SIZE, primary.origRect.h + rawDy)
-        if (drag.mode.includes("w")) {
-          w = Math.max(MIN_SIZE, primary.origRect.w - rawDx)
-          x = primary.origRect.x + (primary.origRect.w - w)
-        }
-        if (drag.mode.includes("n")) {
-          h = Math.max(MIN_SIZE, primary.origRect.h - rawDy)
-          y = primary.origRect.y + (primary.origRect.h - h)
-        }
-
-        let absRect: Rect = {
-          x: primary.parentRect.x + x,
-          y: primary.parentRect.y + y,
-          w,
-          h,
-        }
-
         if (snapOn) {
-          const edges = {
-            n: drag.mode.includes("n"),
-            s: drag.mode.includes("s"),
-            e: drag.mode.includes("e"),
-            w: drag.mode.includes("w"),
-          }
-          const result = drag.session.resolveResize({
-            initialBounds: primary.origAbs,
-            rawBounds: absRect,
+          const result = drag.session.resolveTranslate({
+            initialSelectionBounds: drag.groupOrigAbs,
+            dragDelta: { x: dx, y: dy },
             targets: drag.targets,
             zoom,
-            edges,
+            lockedAxis: locked,
           })
-          absRect = result.snappedBounds
-          x = absRect.x - primary.parentRect.x
-          y = absRect.y - primary.parentRect.y
-          w = Math.max(MIN_SIZE, absRect.w)
-          h = Math.max(MIN_SIZE, absRect.h)
+          dx = dx + result.nudgeX
+          dy = dy + result.nudgeY
+          // 锁轴后再清一次被锁方向的 nudge（防止吸附拉偏）
+          if (locked === "x") dx = 0
+          if (locked === "y") dy = 0
           setIndicators(result.indicators)
         } else {
           clearGuides()
         }
 
         drag.dirty = true
-        updateCanvasRects([{ id: drag.primaryId, rect: { x, y, w, h } }], {
-          history: false,
-        })
+        updateCanvasRects(
+          drag.items.map((item) => ({
+            id: item.id,
+            rect: {
+              x: item.origRect.x + dx,
+              y: item.origRect.y + dy,
+              w: item.origRect.w,
+              h: item.origRect.h,
+            },
+          })),
+          { history: false },
+        )
       }
 
       const handleUp = () => {
@@ -281,7 +220,6 @@ function CanvasNodeBase({
       clearGuides,
       zoom,
       snapToComponents,
-      snapToPixelGrid,
     ],
   )
 
@@ -301,11 +239,12 @@ function CanvasNodeBase({
         "canvas-node absolute select-none border bg-secondary/70 transition-colors",
         !node.parentId && showPixelGrid && "canvas-grid-bg",
         shapeClass,
-        isSelected ? "border-primary ring-2 ring-ring/50" : "border-border",
+        // 选中时淡化边框（选区框由 SelectionOverlay 画）
+        isSelected ? "border-ring/40" : "border-border",
       )}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
       data-canvas-root={!node.parentId ? "true" : undefined}
-      onPointerDown={(e) => handlePointerDown(e, "move")}
+      onPointerDown={handlePointerDown}
     >
       <div className="pointer-events-none absolute left-1.5 top-1 flex items-center gap-1">
         {node.component && (
@@ -324,54 +263,13 @@ function CanvasNodeBase({
               nodeId={cid}
               zoom={zoom}
               snapToComponents={snapToComponents}
-              snapToPixelGrid={snapToPixelGrid}
+              showPixelGrid={showPixelGrid}
             />
           ))}
         </div>
       )}
-
-      {isSelected &&
-        HANDLES.map((dir) => (
-          <div
-            key={dir}
-            className={cn(
-              "absolute size-2 rounded-full border border-primary bg-background",
-              handlePositionClass(dir),
-            )}
-            onPointerDown={(e) => handlePointerDown(e, dir)}
-            style={{ cursor: handleCursor(dir) }}
-          />
-        ))}
     </div>
   )
-}
-
-function handlePositionClass(dir: ResizeDir): string {
-  const map: Record<ResizeDir, string> = {
-    nw: "left-0 top-0 -translate-x-1/2 -translate-y-1/2",
-    n: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-    ne: "right-0 top-0 translate-x-1/2 -translate-y-1/2",
-    e: "right-0 top-1/2 translate-x-1/2 -translate-y-1/2",
-    se: "right-0 bottom-0 translate-x-1/2 translate-y-1/2",
-    s: "left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2",
-    sw: "left-0 bottom-0 -translate-x-1/2 translate-y-1/2",
-    w: "left-0 top-1/2 -translate-x-1/2 -translate-y-1/2",
-  }
-  return map[dir]
-}
-
-function handleCursor(dir: ResizeDir): string {
-  const map: Record<ResizeDir, string> = {
-    nw: "nwse-resize",
-    n: "ns-resize",
-    ne: "nesw-resize",
-    e: "ew-resize",
-    se: "nwse-resize",
-    s: "ns-resize",
-    sw: "nesw-resize",
-    w: "ew-resize",
-  }
-  return map[dir]
 }
 
 export const CanvasNode = memo(CanvasNodeBase)

@@ -41,7 +41,7 @@ src/
 │   ├── ui/                     # shadcn 组件
 │   ├── shell/                  # Header（页面名/模式/导入导出）+ Inspector + PageMenu
 │   ├── mindmap/                # IA 模式：React Flow + d3.tree + 自定义节点
-│   ├── canvas/                 # Canvas：嵌套定位 + 多选拖 + 框选 + snap/ 智能吸附
+│   ├── canvas/                 # Canvas：选区 Overlay + 多选拖 + 框选 + snap/
 │   └── inspector/              # Basics/Component/Content/NodePreview 四个区块
 └── prompts/generation.ts       # AI 生成 prompt 模板
 ```
@@ -61,11 +61,12 @@ Zustand + Immer + 手写 patch undo/redo + persist。persist 只存 `pages + act
 React Flow v12 + `d3-hierarchy` 的 `d3.tree().nodeSize([104, 284])`。从扁平树生成 RF nodes/edges，自定义 mindmap 节点（白卡片 + role badge + 折叠开关）。
 
 ### Canvas 模式
-手写嵌套绝对定位 div。`CanvasNode` 递归渲染子节点，选中时显示 8 方向 resize 手柄。
-- **位移**：多选顶层整组同移；方向键 1px / Shift+方向键 10px。
-- **历史**：store 级 history batch——live 更新自动记下 baseline，`sealHistoryBatch` 压成一条 undo。拖拽松手 / 方向键停顿 400ms 后 seal；其它 commit/undo 也会自动 seal。
-- **框选**：空白处拖拽 marquee（Shift 追加）；`Space`/中键/右键拖 = pan。root 本体不拖移，留给框选。
-- **智能吸附**（`canvas/snap/`，移植 tldraw `BoundsSnaps`）：选区角点/中心 ↔ 目标角点/中心点对齐；gap 中心夹入 + gap 等距复制（等间距）；阈值 `8/zoom`；`SnapOverlay` 粉线+叉号+间距 tick。Alt 关闭。
+手写嵌套绝对定位 div。`CanvasNode` 只渲染内容与拖移；**选区是一等公民**（`SelectionOverlay`：组 AABB + 8 手柄 + 尺寸标签）。
+- **位移**：多选顶层整组同移；**Shift 锁轴**；方向键 1px / Shift+方向键 10px。
+- **缩放**：⌘/Ctrl+滚轮以**光标为不动点**（同步修正 pan）。
+- **历史**：store 级 history batch——live 更新自动记下 baseline，`sealHistoryBatch` 压成一条 undo。
+- **框选**：空白处拖拽 marquee（Shift 追加）；`Space`/中键/右键拖 = pan。root 本体不拖移。
+- **智能吸附**（`canvas/snap/`，移植 tldraw `BoundsSnaps`）：点对齐 + gap 等距；阈值 `8/zoom`；`SnapOverlay` 粉线。Alt 关闭。
 
 ## 设计系统
 
