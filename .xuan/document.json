@@ -1,22 +1,22 @@
 {
   "version": "2.0",
   "meta": {
-    "name": "Operations Dashboard",
+    "name": "AI 超级卡 · 课程浏览页",
     "designSystem": "shadcn/ui@latest",
     "viewport": {
       "width": 1440,
-      "height": 900
+      "height": 1242.9235538999735
     }
   },
   "tree": {
     "id": "node_root",
-    "name": "Dashboard Page",
+    "name": "课程浏览页",
     "role": "page",
     "rect": {
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 900
+      "h": 1242.9235538999735
     },
     "shape": "rectangle",
     "component": null,
@@ -24,299 +24,2701 @@
     "children": [
       {
         "id": "node_sidebar",
-        "name": "Sidebar Navigation",
+        "name": "Dashboard Sidebar",
         "role": "navigation",
         "rect": {
           "x": 0,
           "y": 0,
-          "w": 240,
-          "h": 900
+          "w": 288,
+          "h": 1242.9235538999735
         },
         "shape": "rectangle",
         "component": {
           "ref": "Sidebar",
           "props": {
-            "collapsible": "icon"
+            "variant": "inset"
           }
         },
         "content": null,
         "children": [
           {
             "id": "node_brand",
-            "name": "Acme Analytics",
+            "name": "Brand Header",
             "role": "branding",
             "rect": {
               "x": 16,
               "y": 16,
-              "w": 208,
-              "h": 48
+              "w": 256,
+              "h": 52
             },
-            "shape": "text",
-            "component": null,
-            "content": {
-              "text": "Acme Analytics"
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarHeader",
+              "props": {}
             },
-            "children": []
+            "content": null,
+            "children": [
+              {
+                "id": "node_brand_name",
+                "name": "Brand Name",
+                "role": "heading",
+                "rect": {
+                  "x": 48,
+                  "y": 20,
+                  "w": 208,
+                  "h": 22
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "AI 超级卡"
+                },
+                "children": []
+              },
+              {
+                "id": "node_brand_subtitle",
+                "name": "Brand Subtitle",
+                "role": "caption",
+                "rect": {
+                  "x": 48,
+                  "y": 43,
+                  "w": 208,
+                  "h": 17
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "学习强国AI频道出品"
+                },
+                "children": []
+              }
+            ]
           },
           {
-            "id": "node_menu",
-            "name": "Main Menu",
+            "id": "node_primary_nav",
+            "name": "Primary Navigation",
             "role": "navigation",
             "rect": {
               "x": 16,
-              "y": 80,
-              "w": 208,
-              "h": 620
+              "y": 92,
+              "w": 256,
+              "h": 104
             },
             "shape": "rectangle",
             "component": {
               "ref": "SidebarMenu",
               "props": {}
             },
-            "content": {
-              "items": [
-                "Overview",
-                "Orders",
-                "Products",
-                "Customers",
-                "Settings"
-              ]
+            "content": null,
+            "children": [
+              {
+                "id": "node_benefits",
+                "name": "Benefits Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 100,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "权益广场",
+                    "active": false
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_courses",
+                "name": "Courses Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 148,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "课程",
+                    "active": true
+                  }
+                },
+                "content": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_settings_nav",
+            "name": "Settings Navigation",
+            "role": "navigation",
+            "rect": {
+              "x": 16,
+              "y": 224,
+              "w": 256,
+              "h": 232
             },
-            "children": []
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarMenu",
+              "props": {
+                "label": "设置"
+              }
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_settings_label",
+                "name": "Settings Label",
+                "role": "label",
+                "rect": {
+                  "x": 24,
+                  "y": 226,
+                  "w": 232,
+                  "h": 24
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "设置"
+                },
+                "children": []
+              },
+              {
+                "id": "node_profile",
+                "name": "Profile Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 258,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "个人资料"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_credits",
+                "name": "Credits Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 306,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "积分"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_security",
+                "name": "Security Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 354,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "安全"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_notifications",
+                "name": "Notifications Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 402,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "通知"
+                  }
+                },
+                "content": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_user_profile",
+            "name": "User Profile",
+            "role": "account",
+            "rect": {
+              "x": 16,
+              "y": 1160,
+              "w": 256,
+              "h": 52
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarFooter",
+              "props": {}
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_user_name",
+                "name": "User Name",
+                "role": "label",
+                "rect": {
+                  "x": 60,
+                  "y": 1162,
+                  "w": 160,
+                  "h": 24
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "User"
+                },
+                "children": []
+              },
+              {
+                "id": "node_user_email",
+                "name": "User Email",
+                "role": "caption",
+                "rect": {
+                  "x": 60,
+                  "y": 1186,
+                  "w": 180,
+                  "h": 26
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "user@example.com"
+                },
+                "children": []
+              }
+            ]
           }
         ]
       },
       {
-        "id": "node_main",
-        "name": "Main Content",
-        "role": "main",
+        "id": "node_header",
+        "name": "Dashboard Header",
+        "role": "header",
         "rect": {
-          "x": 240,
+          "x": 288,
           "y": 0,
-          "w": 1200,
-          "h": 900
+          "w": 1152,
+          "h": 64
         },
         "shape": "rectangle",
         "component": null,
         "content": null,
         "children": [
           {
-            "id": "node_header",
-            "name": "Top Bar",
-            "role": "header",
+            "id": "node_sidebar_trigger",
+            "name": "Sidebar Trigger",
+            "role": "control",
             "rect": {
-              "x": 240,
-              "y": 0,
-              "w": 1200,
-              "h": 72
+              "x": 312,
+              "y": 18,
+              "w": 28,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarTrigger",
+              "props": {}
+            },
+            "content": null,
+            "children": []
+          },
+          {
+            "id": "node_breadcrumb",
+            "name": "Courses Breadcrumb",
+            "role": "breadcrumb",
+            "rect": {
+              "x": 368,
+              "y": 20,
+              "w": 160,
+              "h": 24
+            },
+            "shape": "text",
+            "component": null,
+            "content": {
+              "text": "课程"
+            },
+            "children": []
+          },
+          {
+            "id": "node_theme_switcher",
+            "name": "Theme Switcher",
+            "role": "control",
+            "rect": {
+              "x": 1288,
+              "y": 18,
+              "w": 28,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "Button",
+              "props": {
+                "label": "主题"
+              }
+            },
+            "content": null,
+            "children": []
+          },
+          {
+            "id": "node_locale_switcher",
+            "name": "Locale Switcher",
+            "role": "control",
+            "rect": {
+              "x": 1332,
+              "y": 18,
+              "w": 84,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "Button",
+              "props": {
+                "label": "简体中文"
+              }
+            },
+            "content": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "node_main",
+        "name": "课程浏览主内容",
+        "role": "main",
+        "rect": {
+          "x": 288,
+          "y": 64,
+          "w": 1152,
+          "h": 1178.7162113355942
+        },
+        "shape": "rectangle",
+        "component": null,
+        "content": null,
+        "children": [
+          {
+            "id": "course_hero",
+            "name": "课程发现 Hero",
+            "role": "section",
+            "rect": {
+              "x": 336,
+              "y": 104,
+              "w": 1056,
+              "h": 142.7355214217947
             },
             "shape": "rectangle",
             "component": null,
             "content": null,
             "children": [
               {
-                "id": "node_title",
-                "name": "Operations Overview",
+                "id": "course_hero_title",
+                "name": "课程页标题",
                 "role": "heading",
                 "rect": {
-                  "x": 264,
-                  "y": 20,
-                  "w": 220,
-                  "h": 32
+                  "x": 336,
+                  "y": 108,
+                  "w": 1056,
+                  "h": 34.393590033018334
                 },
                 "shape": "text",
                 "component": null,
                 "content": {
-                  "text": "Operations Overview"
+                  "text": "探索课程，构建你的 AI 技能栈"
                 },
                 "children": []
               },
               {
-                "id": "node_search",
-                "name": "Global Search",
+                "id": "course_hero_subtitle",
+                "name": "课程页说明",
+                "role": "description",
+                "rect": {
+                  "x": 336,
+                  "y": 142.39359003301834,
+                  "w": 1056,
+                  "h": 28
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "从最新课程开始，或按主题找到适合你的学习内容"
+                },
+                "children": []
+              },
+              {
+                "id": "course_search",
+                "name": "课程搜索",
                 "role": "search",
                 "rect": {
-                  "x": 1000,
-                  "y": 18,
-                  "w": 280,
-                  "h": 36
+                  "x": 336,
+                  "y": 176,
+                  "w": 1056,
+                  "h": 50.78771515663692
                 },
                 "shape": "rectangle",
                 "component": {
                   "ref": "Input",
                   "props": {
-                    "placeholder": "Search orders, products..."
+                    "placeholder": "搜索课程、技术方向或讲师…",
+                    "type": "search"
                   }
                 },
-                "content": null,
-                "children": []
-              },
-              {
-                "id": "node_export",
-                "name": "Export Report",
-                "role": "cta",
-                "rect": {
-                  "x": 1300,
-                  "y": 18,
-                  "w": 116,
-                  "h": 36
+                "content": {
+                  "placeholder": "搜索课程、技术方向或讲师…"
                 },
-                "shape": "rectangle",
-                "component": {
-                  "ref": "Button",
-                  "props": {
-                    "variant": "outline"
-                  }
-                },
-                "content": null,
                 "children": []
               }
             ]
           },
           {
-            "id": "node_stats",
-            "name": "Key Metrics",
-            "role": "stats",
+            "id": "course_filters",
+            "name": "课程分类筛选",
+            "role": "navigation",
             "rect": {
-              "x": 264,
-              "y": 96,
-              "w": 1152,
-              "h": 150
+              "x": 336,
+              "y": 256,
+              "w": 1056,
+              "h": 40
             },
             "shape": "rectangle",
             "component": null,
             "content": null,
             "children": [
               {
-                "id": "node_stat_0",
-                "name": "Total Revenue",
-                "role": "stat-card",
+                "id": "filter_latest",
+                "name": "最新筛选",
+                "role": "navigation-item",
                 "rect": {
-                  "x": 264,
-                  "y": 96,
-                  "w": 272,
-                  "h": 150
+                  "x": 336,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
                 },
                 "shape": "rectangle",
                 "component": {
-                  "ref": "Card",
-                  "props": {}
+                  "ref": "Badge",
+                  "props": {
+                    "label": "最新",
+                    "variant": "default",
+                    "interactive": true
+                  }
                 },
                 "content": {
-                  "label": "Total Revenue",
-                  "value": "$128,420"
+                  "label": "最新",
+                  "filterValue": "最新",
+                  "selected": true
                 },
                 "children": []
               },
               {
-                "id": "node_stat_1",
-                "name": "Orders",
-                "role": "stat-card",
+                "id": "filter_ai",
+                "name": "Agent筛选",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 444,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Badge",
+                  "props": {
+                    "label": "Agent",
+                    "variant": "outline",
+                    "interactive": true
+                  }
+                },
+                "content": {
+                  "label": "Agent",
+                  "filterValue": "Agent",
+                  "selected": false
+                },
+                "children": []
+              },
+              {
+                "id": "filter_frontend",
+                "name": "Vibe Coding筛选",
+                "role": "navigation-item",
                 "rect": {
                   "x": 552,
-                  "y": 96,
-                  "w": 272,
-                  "h": 150
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
                 },
                 "shape": "rectangle",
                 "component": {
-                  "ref": "Card",
-                  "props": {}
+                  "ref": "Badge",
+                  "props": {
+                    "label": "Vibe Coding",
+                    "variant": "outline",
+                    "interactive": true
+                  }
                 },
                 "content": {
-                  "label": "Orders",
-                  "value": "2,846"
+                  "label": "Vibe Coding",
+                  "filterValue": "Vibe Coding",
+                  "selected": false
                 },
                 "children": []
               },
               {
-                "id": "node_stat_2",
-                "name": "Average Order Value",
-                "role": "stat-card",
+                "id": "filter_backend",
+                "name": "AIGC筛选",
+                "role": "navigation-item",
                 "rect": {
-                  "x": 840,
-                  "y": 96,
-                  "w": 272,
-                  "h": 150
+                  "x": 660,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
                 },
                 "shape": "rectangle",
                 "component": {
-                  "ref": "Card",
-                  "props": {}
+                  "ref": "Badge",
+                  "props": {
+                    "label": "AIGC",
+                    "variant": "outline",
+                    "interactive": true
+                  }
                 },
                 "content": {
-                  "label": "Average Order Value",
-                  "value": "$451"
+                  "label": "AIGC",
+                  "filterValue": "AIGC",
+                  "selected": false
                 },
                 "children": []
               },
               {
-                "id": "node_stat_3",
-                "name": "Conversion Rate",
-                "role": "stat-card",
+                "id": "filter_fullstack",
+                "name": "办公筛选",
+                "role": "navigation-item",
                 "rect": {
-                  "x": 1128,
-                  "y": 96,
-                  "w": 272,
-                  "h": 150
+                  "x": 768,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
                 },
                 "shape": "rectangle",
                 "component": {
-                  "ref": "Card",
-                  "props": {}
+                  "ref": "Badge",
+                  "props": {
+                    "label": "办公",
+                    "variant": "outline",
+                    "interactive": true
+                  }
                 },
                 "content": {
-                  "label": "Conversion Rate",
-                  "value": "4.8%"
+                  "label": "办公",
+                  "filterValue": "办公",
+                  "selected": false
+                },
+                "children": []
+              },
+              {
+                "id": "filter_data",
+                "name": "学习筛选",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 876,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Badge",
+                  "props": {
+                    "label": "学习",
+                    "variant": "outline",
+                    "interactive": true
+                  }
+                },
+                "content": {
+                  "label": "学习",
+                  "filterValue": "学习",
+                  "selected": false
+                },
+                "children": []
+              },
+              {
+                "id": "filter_design",
+                "name": "设计筛选",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 984,
+                  "y": 256,
+                  "w": 96,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Badge",
+                  "props": {
+                    "label": "设计",
+                    "variant": "outline",
+                    "interactive": true
+                  }
+                },
+                "content": {
+                  "label": "设计",
+                  "filterValue": "设计",
+                  "selected": false
                 },
                 "children": []
               }
             ]
           },
           {
-            "id": "node_chart",
-            "name": "Revenue Trend",
-            "role": "chart",
+            "id": "section_latest",
+            "name": "最新课程",
+            "role": "section",
             "rect": {
-              "x": 264,
-              "y": 270,
-              "w": 720,
-              "h": 280
+              "x": 336,
+              "y": 312,
+              "w": 1056,
+              "h": 288
             },
             "shape": "rectangle",
-            "component": {
-              "ref": "ChartContainer",
-              "props": {}
-            },
-            "content": {
-              "range": "Last 30 days",
-              "series": [
-                "Revenue",
-                "Orders"
-              ]
-            },
-            "children": []
+            "component": null,
+            "content": null,
+            "children": [
+              {
+                "id": "latest_title",
+                "name": "最新课程标题",
+                "role": "heading",
+                "rect": {
+                  "x": 336,
+                  "y": 312,
+                  "w": 240,
+                  "h": 32
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "最新课程",
+                  "icon": "Sparkles"
+                },
+                "children": []
+              },
+              {
+                "id": "latest_more",
+                "name": "查看更多",
+                "role": "cta",
+                "rect": {
+                  "x": 1280,
+                  "y": 312,
+                  "w": 112,
+                  "h": 32
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Button",
+                  "props": {
+                    "label": "查看更多 →",
+                    "variant": "link",
+                    "size": "sm"
+                  }
+                },
+                "content": {
+                  "label": "查看更多",
+                  "filterValue": "最新",
+                  "behavior": "与顶部分类筛选相同"
+                },
+                "children": []
+              },
+              {
+                "id": "latest_list",
+                "name": "最新课程列表",
+                "role": "list",
+                "rect": {
+                  "x": 336,
+                  "y": 356,
+                  "w": 1056,
+                  "h": 244
+                },
+                "shape": "rectangle",
+                "component": null,
+                "content": null,
+                "children": [
+                  {
+                    "id": "latest_card_1",
+                    "name": "爱图表课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 336,
+                      "y": 356,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "latest_card_1_cover",
+                        "name": "爱图表封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 336,
+                          "y": 356,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "爱图表 AI 数据图表与可视化报告封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_1_title",
+                        "name": "爱图表课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 348,
+                          "y": 506,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "爱图表 - 标准会员 - 15 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_1_instructor",
+                        "name": "爱图表讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 348,
+                          "y": 546,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "latest_card_1_avatar",
+                            "name": "爱图表讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 348,
+                              "y": 549,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "林知夏",
+                                "fallback": "林"
+                              }
+                            },
+                            "content": {
+                              "alt": "林知夏的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "latest_card_1_instructor_text",
+                            "name": "爱图表讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 394,
+                              "y": 546,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "latest_card_1_name",
+                                "name": "爱图表讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 546,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "林知夏"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "latest_card_1_bio",
+                                "name": "爱图表讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 566,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "AI 产品讲师，专注数据可视化与智能办公"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "latest_card_2",
+                    "name": "铱石 ASE 平台课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 604,
+                      "y": 356,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "latest_card_2_cover",
+                        "name": "铱石 ASE 平台封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 604,
+                          "y": 356,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "铱石 ASE 企业软件持续进化平台封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_2_title",
+                        "name": "铱石 ASE 平台课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 616,
+                          "y": 506,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "铱石 ASE 平台 - 旗舰版 - 30 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_2_instructor",
+                        "name": "铱石 ASE 平台讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 616,
+                          "y": 546,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "latest_card_2_avatar",
+                            "name": "铱石 ASE 平台讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 616,
+                              "y": 549,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "陈屿",
+                                "fallback": "陈"
+                              }
+                            },
+                            "content": {
+                              "alt": "陈屿的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "latest_card_2_instructor_text",
+                            "name": "铱石 ASE 平台讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 662,
+                              "y": 546,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "latest_card_2_name",
+                                "name": "铱石 ASE 平台讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 546,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "陈屿"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "latest_card_2_bio",
+                                "name": "铱石 ASE 平台讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 566,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "企业数字化顾问，专注 AI 软件工程实践"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "latest_card_3",
+                    "name": "百度秒哒课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 872,
+                      "y": 356,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "latest_card_3_cover",
+                        "name": "百度秒哒封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 872,
+                          "y": 356,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "百度秒哒无代码应用开发平台封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_3_title",
+                        "name": "百度秒哒课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 884,
+                          "y": 506,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "百度秒哒 - 资源礼包"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_3_instructor",
+                        "name": "百度秒哒讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 884,
+                          "y": 546,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "latest_card_3_avatar",
+                            "name": "百度秒哒讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 884,
+                              "y": 549,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "周然",
+                                "fallback": "周"
+                              }
+                            },
+                            "content": {
+                              "alt": "周然的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "latest_card_3_instructor_text",
+                            "name": "百度秒哒讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 930,
+                              "y": 546,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "latest_card_3_name",
+                                "name": "百度秒哒讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 546,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "周然"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "latest_card_3_bio",
+                                "name": "百度秒哒讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 566,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "零代码开发讲师，擅长快速验证产品创意"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "latest_card_4",
+                    "name": "小微智能体课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 1140,
+                      "y": 356,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "latest_card_4_cover",
+                        "name": "小微智能体封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 1140,
+                          "y": 356,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "小微智能体微信小程序与 Agent 封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_4_title",
+                        "name": "小微智能体课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 1152,
+                          "y": 506,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "小微智能体 - 800 点 - 7 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "latest_card_4_instructor",
+                        "name": "小微智能体讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 1152,
+                          "y": 546,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "latest_card_4_avatar",
+                            "name": "小微智能体讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 1152,
+                              "y": 549,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "顾遥",
+                                "fallback": "顾"
+                              }
+                            },
+                            "content": {
+                              "alt": "顾遥的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "latest_card_4_instructor_text",
+                            "name": "小微智能体讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 1198,
+                              "y": 546,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "latest_card_4_name",
+                                "name": "小微智能体讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 546,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "顾遥"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "latest_card_4_bio",
+                                "name": "小微智能体讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 566,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "智能体产品经理，深耕微信生态应用"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           },
           {
-            "id": "node_orders",
-            "name": "Recent Orders",
-            "role": "data-table",
+            "id": "section_ai",
+            "name": "Agent 课程",
+            "role": "section",
             "rect": {
-              "x": 264,
-              "y": 574,
-              "w": 1152,
-              "h": 286
+              "x": 336,
+              "y": 624,
+              "w": 1056,
+              "h": 288
             },
             "shape": "rectangle",
-            "component": {
-              "ref": "Table",
-              "props": {}
+            "component": null,
+            "content": null,
+            "children": [
+              {
+                "id": "ai_title",
+                "name": "Agent 课程标题",
+                "role": "heading",
+                "rect": {
+                  "x": 336,
+                  "y": 624,
+                  "w": 240,
+                  "h": 32
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "Agent",
+                  "icon": "Folder"
+                },
+                "children": []
+              },
+              {
+                "id": "ai_more",
+                "name": "查看更多 Agent 课程",
+                "role": "cta",
+                "rect": {
+                  "x": 1280,
+                  "y": 624,
+                  "w": 112,
+                  "h": 32
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Button",
+                  "props": {
+                    "label": "查看更多 →",
+                    "variant": "link",
+                    "size": "sm"
+                  }
+                },
+                "content": {
+                  "label": "查看更多",
+                  "filterValue": "Agent",
+                  "behavior": "与顶部分类筛选相同"
+                },
+                "children": []
+              },
+              {
+                "id": "ai_list",
+                "name": "Agent 课程列表",
+                "role": "list",
+                "rect": {
+                  "x": 336,
+                  "y": 668,
+                  "w": 1056,
+                  "h": 244
+                },
+                "shape": "rectangle",
+                "component": null,
+                "content": null,
+                "children": [
+                  {
+                    "id": "ai_card_1",
+                    "name": "智谱 Zwork课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 336,
+                      "y": 668,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "ai_card_1_cover",
+                        "name": "智谱 Zwork封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 336,
+                          "y": 668,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "智谱 Zwork 本地 Agent 工作流封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_1_title",
+                        "name": "智谱 Zwork课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 348,
+                          "y": 818,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "智谱 Zwork - 5000 积分"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_1_instructor",
+                        "name": "智谱 Zwork讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 348,
+                          "y": 858,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "ai_card_1_avatar",
+                            "name": "智谱 Zwork讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 348,
+                              "y": 861,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "沈括",
+                                "fallback": "沈"
+                              }
+                            },
+                            "content": {
+                              "alt": "沈括的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "ai_card_1_instructor_text",
+                            "name": "智谱 Zwork讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 394,
+                              "y": 858,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "ai_card_1_name",
+                                "name": "智谱 Zwork讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 858,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "沈括"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "ai_card_1_bio",
+                                "name": "智谱 Zwork讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 878,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "AI Agent 工程师，专注本地自动化工作流"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "ai_card_2",
+                    "name": "小微智能体课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 604,
+                      "y": 668,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "ai_card_2_cover",
+                        "name": "小微智能体封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 604,
+                          "y": 668,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "小微智能体创建与发布平台封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_2_title",
+                        "name": "小微智能体课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 616,
+                          "y": 818,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "小微智能体 - 800 点 - 7 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_2_instructor",
+                        "name": "小微智能体讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 616,
+                          "y": 858,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "ai_card_2_avatar",
+                            "name": "小微智能体讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 616,
+                              "y": 861,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "温宁",
+                                "fallback": "温"
+                              }
+                            },
+                            "content": {
+                              "alt": "温宁的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "ai_card_2_instructor_text",
+                            "name": "小微智能体讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 662,
+                              "y": 858,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "ai_card_2_name",
+                                "name": "小微智能体讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 858,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "温宁"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "ai_card_2_bio",
+                                "name": "小微智能体讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 878,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "智能体开发讲师，擅长 Agent 设计与发布"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "ai_card_3",
+                    "name": "智律云课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 872,
+                      "y": 668,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "ai_card_3_cover",
+                        "name": "智律云封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 872,
+                          "y": 668,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "智律云法律 Agent 与合同审查封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_3_title",
+                        "name": "智律云课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 884,
+                          "y": 818,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "智律云 - 500 积分"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_3_instructor",
+                        "name": "智律云讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 884,
+                          "y": 858,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "ai_card_3_avatar",
+                            "name": "智律云讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 884,
+                              "y": 861,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "李衡",
+                                "fallback": "李"
+                              }
+                            },
+                            "content": {
+                              "alt": "李衡的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "ai_card_3_instructor_text",
+                            "name": "智律云讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 930,
+                              "y": 858,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "ai_card_3_name",
+                                "name": "智律云讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 858,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "李衡"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "ai_card_3_bio",
+                                "name": "智律云讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 878,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "法律科技顾问，研究 AI 在法务场景的应用"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "ai_card_4",
+                    "name": "问小白 5Pro课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 1140,
+                      "y": 668,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "ai_card_4_cover",
+                        "name": "问小白 5Pro封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 1140,
+                          "y": 668,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "问小白专业长文写作与研究 Agent 封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_4_title",
+                        "name": "问小白 5Pro课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 1152,
+                          "y": 818,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "问小白 5Pro - VIP 会员 - 31 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "ai_card_4_instructor",
+                        "name": "问小白 5Pro讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 1152,
+                          "y": 858,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "ai_card_4_avatar",
+                            "name": "问小白 5Pro讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 1152,
+                              "y": 861,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "叶舟",
+                                "fallback": "叶"
+                              }
+                            },
+                            "content": {
+                              "alt": "叶舟的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "ai_card_4_instructor_text",
+                            "name": "问小白 5Pro讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 1198,
+                              "y": 858,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "ai_card_4_name",
+                                "name": "问小白 5Pro讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 858,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "叶舟"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "ai_card_4_bio",
+                                "name": "问小白 5Pro讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 878,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "AI 研究写作讲师，专注长文与联网调研"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "section_frontend",
+            "name": "Vibe Coding 课程",
+            "role": "section",
+            "rect": {
+              "x": 336,
+              "y": 928,
+              "w": 1056,
+              "h": 288
             },
-            "content": {
-              "itemCount": 8,
-              "itemRole": "order-row"
-            },
-            "children": []
+            "shape": "rectangle",
+            "component": null,
+            "content": null,
+            "children": [
+              {
+                "id": "frontend_title",
+                "name": "Vibe Coding 课程标题",
+                "role": "heading",
+                "rect": {
+                  "x": 336,
+                  "y": 928,
+                  "w": 240,
+                  "h": 32
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "Vibe Coding",
+                  "icon": "Folder"
+                },
+                "children": []
+              },
+              {
+                "id": "frontend_more",
+                "name": "查看更多 Vibe Coding 课程",
+                "role": "cta",
+                "rect": {
+                  "x": 1280,
+                  "y": 928,
+                  "w": 112,
+                  "h": 32
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "Button",
+                  "props": {
+                    "label": "查看更多 →",
+                    "variant": "link",
+                    "size": "sm"
+                  }
+                },
+                "content": {
+                  "label": "查看更多",
+                  "filterValue": "Vibe Coding",
+                  "behavior": "与顶部分类筛选相同"
+                },
+                "children": []
+              },
+              {
+                "id": "frontend_list",
+                "name": "Vibe Coding 课程列表",
+                "role": "list",
+                "rect": {
+                  "x": 336,
+                  "y": 972,
+                  "w": 1056,
+                  "h": 244
+                },
+                "shape": "rectangle",
+                "component": null,
+                "content": null,
+                "children": [
+                  {
+                    "id": "frontend_card_1",
+                    "name": "百度秒哒课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 336,
+                      "y": 972,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "frontend_card_1_cover",
+                        "name": "百度秒哒封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 336,
+                          "y": 972,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "百度秒哒 Vibe Coding 应用生成封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_1_title",
+                        "name": "百度秒哒课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 348,
+                          "y": 1122,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "百度秒哒 - 资源礼包"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_1_instructor",
+                        "name": "百度秒哒讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 348,
+                          "y": 1162,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "frontend_card_1_avatar",
+                            "name": "百度秒哒讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 348,
+                              "y": 1165,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "苏澄",
+                                "fallback": "苏"
+                              }
+                            },
+                            "content": {
+                              "alt": "苏澄的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "frontend_card_1_instructor_text",
+                            "name": "百度秒哒讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 394,
+                              "y": 1162,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "frontend_card_1_name",
+                                "name": "百度秒哒讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 1162,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "苏澄"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "frontend_card_1_bio",
+                                "name": "百度秒哒讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 394,
+                                  "y": 1182,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "产品设计师，擅长用 AI 快速构建应用原型"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "frontend_card_2",
+                    "name": "码上飞课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 604,
+                      "y": 972,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "frontend_card_2_cover",
+                        "name": "码上飞封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 604,
+                          "y": 972,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "码上飞自然语言应用生成平台封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_2_title",
+                        "name": "码上飞课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 616,
+                          "y": 1122,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "码上飞 - 会员 - 7 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_2_instructor",
+                        "name": "码上飞讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 616,
+                          "y": 1162,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "frontend_card_2_avatar",
+                            "name": "码上飞讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 616,
+                              "y": 1165,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "许墨",
+                                "fallback": "许"
+                              }
+                            },
+                            "content": {
+                              "alt": "许墨的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "frontend_card_2_instructor_text",
+                            "name": "码上飞讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 662,
+                              "y": 1162,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "frontend_card_2_name",
+                                "name": "码上飞讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 1162,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "许墨"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "frontend_card_2_bio",
+                                "name": "码上飞讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 662,
+                                  "y": 1182,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "独立开发者，长期实践 Vibe Coding"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "frontend_card_3",
+                    "name": "铱石 ASE 平台课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 872,
+                      "y": 972,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "frontend_card_3_cover",
+                        "name": "铱石 ASE 平台封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 872,
+                          "y": 972,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "铱石 ASE 软件开发与交付封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_3_title",
+                        "name": "铱石 ASE 平台课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 884,
+                          "y": 1122,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "铱石 ASE 平台 - 旗舰版 - 30 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_3_instructor",
+                        "name": "铱石 ASE 平台讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 884,
+                          "y": 1162,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "frontend_card_3_avatar",
+                            "name": "铱石 ASE 平台讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 884,
+                              "y": 1165,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "方临",
+                                "fallback": "方"
+                              }
+                            },
+                            "content": {
+                              "alt": "方临的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "frontend_card_3_instructor_text",
+                            "name": "铱石 ASE 平台讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 930,
+                              "y": 1162,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "frontend_card_3_name",
+                                "name": "铱石 ASE 平台讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 1162,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "方临"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "frontend_card_3_bio",
+                                "name": "铱石 ASE 平台讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 930,
+                                  "y": 1182,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "软件架构师，专注从需求到交付的 AI 协作"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "frontend_card_4",
+                    "name": "MiniMax Token Plan课程卡片",
+                    "role": "card",
+                    "rect": {
+                      "x": 1140,
+                      "y": 972,
+                      "w": 252,
+                      "h": 244
+                    },
+                    "shape": "rectangle",
+                    "component": {
+                      "ref": "Card",
+                      "props": {
+                        "interactive": true
+                      }
+                    },
+                    "content": null,
+                    "children": [
+                      {
+                        "id": "frontend_card_4_cover",
+                        "name": "MiniMax Token Plan封面",
+                        "role": "media",
+                        "rect": {
+                          "x": 1140,
+                          "y": 972,
+                          "w": 252,
+                          "h": 140
+                        },
+                        "shape": "rectangle",
+                        "component": {
+                          "ref": "AspectRatio",
+                          "props": {
+                            "ratio": 1.8
+                          }
+                        },
+                        "content": {
+                          "description": "MiniMax Code 与多模态模型封面"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_4_title",
+                        "name": "MiniMax Token Plan课程标题",
+                        "role": "heading",
+                        "rect": {
+                          "x": 1152,
+                          "y": 1122,
+                          "w": 228,
+                          "h": 32
+                        },
+                        "shape": "text",
+                        "component": null,
+                        "content": {
+                          "text": "MiniMax Token Plan - 5 天"
+                        },
+                        "children": []
+                      },
+                      {
+                        "id": "frontend_card_4_instructor",
+                        "name": "MiniMax Token Plan讲师信息",
+                        "role": "group",
+                        "rect": {
+                          "x": 1152,
+                          "y": 1162,
+                          "w": 228,
+                          "h": 42
+                        },
+                        "shape": "rectangle",
+                        "component": null,
+                        "content": null,
+                        "children": [
+                          {
+                            "id": "frontend_card_4_avatar",
+                            "name": "MiniMax Token Plan讲师头像",
+                            "role": "image",
+                            "rect": {
+                              "x": 1152,
+                              "y": 1165,
+                              "w": 36,
+                              "h": 36
+                            },
+                            "shape": "ellipse",
+                            "component": {
+                              "ref": "Avatar",
+                              "props": {
+                                "alt": "唐川",
+                                "fallback": "唐"
+                              }
+                            },
+                            "content": {
+                              "alt": "唐川的讲师头像"
+                            },
+                            "children": []
+                          },
+                          {
+                            "id": "frontend_card_4_instructor_text",
+                            "name": "MiniMax Token Plan讲师文字",
+                            "role": "group",
+                            "rect": {
+                              "x": 1198,
+                              "y": 1162,
+                              "w": 182,
+                              "h": 42
+                            },
+                            "shape": "rectangle",
+                            "component": null,
+                            "content": null,
+                            "children": [
+                              {
+                                "id": "frontend_card_4_name",
+                                "name": "MiniMax Token Plan讲师姓名",
+                                "role": "label",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 1162,
+                                  "w": 182,
+                                  "h": 18
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "唐川"
+                                },
+                                "children": []
+                              },
+                              {
+                                "id": "frontend_card_4_bio",
+                                "name": "MiniMax Token Plan讲师简介",
+                                "role": "description",
+                                "rect": {
+                                  "x": 1198,
+                                  "y": 1182,
+                                  "w": 182,
+                                  "h": 22
+                                },
+                                "shape": "text",
+                                "component": null,
+                                "content": {
+                                  "text": "AI 编程教练，熟悉主流 Coding Agent 工具"
+                                },
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

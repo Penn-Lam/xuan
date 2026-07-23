@@ -15,3 +15,9 @@ Preserve the order: **schema first, then layout**. Start with a feature, not a l
 
 Use the active project root as `projectPath` for every Xuan MCP tool. Never operate the editor through DOM clicks or clipboard automation.
 
+## Editor handoff
+
+- Never create a standalone `*.json` file for the user to import. Xuan MCP writes `.xuan/document.json`; the editor bridge loads it.
+- When the user asks for a new editor page, call `create_xuan_page`. When they ask for a region inside the current page, use an IA `add_node` operation.
+- After creating or changing a page, reuse or open the returned `editorUrl` in the built-in browser so the result is visible. Do not click Import or use a file picker.
+- If the editor URL is unavailable and the active checkout is the Xuan editor, start it with `bun run dev`, then open the URL. Otherwise report that the editor host is not running; keep the document ready for automatic loading when it starts.

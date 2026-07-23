@@ -49,7 +49,7 @@ function startAgentDocumentSync(): () => void {
   const applyRemote = (remote: RemoteDocumentState) => {
     revision = remote.revision
     lastSyncedDocument = JSON.stringify(remote.document)
-    useEditorStore.getState().replaceDocument(deserializeDocument(remote.document))
+    useEditorStore.getState().upsertAgentDocument(deserializeDocument(remote.document))
   }
 
   const flush = async () => {

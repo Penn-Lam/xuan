@@ -1,0 +1,439 @@
+{
+  "version": "2.0",
+  "meta": {
+    "name": "Course Page",
+    "designSystem": "shadcn/ui@latest",
+    "viewport": {
+      "width": 1440,
+      "height": 1200
+    }
+  },
+  "tree": {
+    "id": "node_root",
+    "name": "Course Page",
+    "role": "page",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1200
+    },
+    "shape": "rectangle",
+    "component": null,
+    "content": null,
+    "children": [
+      {
+        "id": "node_sidebar",
+        "name": "Dashboard Sidebar",
+        "role": "navigation",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 288,
+          "h": 1200
+        },
+        "shape": "rectangle",
+        "component": {
+          "ref": "Sidebar",
+          "props": {
+            "variant": "inset"
+          }
+        },
+        "content": null,
+        "children": [
+          {
+            "id": "node_brand",
+            "name": "Brand Header",
+            "role": "branding",
+            "rect": {
+              "x": 16,
+              "y": 16,
+              "w": 256,
+              "h": 52
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarHeader",
+              "props": {}
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_brand_name",
+                "name": "Brand Name",
+                "role": "heading",
+                "rect": {
+                  "x": 48,
+                  "y": 20,
+                  "w": 208,
+                  "h": 22
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "AI 超级卡"
+                },
+                "children": []
+              },
+              {
+                "id": "node_brand_subtitle",
+                "name": "Brand Subtitle",
+                "role": "caption",
+                "rect": {
+                  "x": 48,
+                  "y": 43,
+                  "w": 208,
+                  "h": 17
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "学习强国AI频道出品"
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_primary_nav",
+            "name": "Primary Navigation",
+            "role": "navigation",
+            "rect": {
+              "x": 16,
+              "y": 92,
+              "w": 256,
+              "h": 104
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarMenu",
+              "props": {}
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_benefits",
+                "name": "Benefits Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 100,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "权益广场",
+                    "active": false
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_courses",
+                "name": "Courses Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 148,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "课程",
+                    "active": true
+                  }
+                },
+                "content": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_settings_nav",
+            "name": "Settings Navigation",
+            "role": "navigation",
+            "rect": {
+              "x": 16,
+              "y": 224,
+              "w": 256,
+              "h": 232
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarMenu",
+              "props": {
+                "label": "设置"
+              }
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_settings_label",
+                "name": "Settings Label",
+                "role": "label",
+                "rect": {
+                  "x": 24,
+                  "y": 226,
+                  "w": 232,
+                  "h": 24
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "设置"
+                },
+                "children": []
+              },
+              {
+                "id": "node_profile",
+                "name": "Profile Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 258,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "个人资料"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_credits",
+                "name": "Credits Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 306,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "积分"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_security",
+                "name": "Security Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 354,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "安全"
+                  }
+                },
+                "content": null,
+                "children": []
+              },
+              {
+                "id": "node_notifications",
+                "name": "Notifications Tab",
+                "role": "navigation-item",
+                "rect": {
+                  "x": 24,
+                  "y": 402,
+                  "w": 240,
+                  "h": 40
+                },
+                "shape": "rectangle",
+                "component": {
+                  "ref": "SidebarMenuButton",
+                  "props": {
+                    "label": "通知"
+                  }
+                },
+                "content": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "node_user_profile",
+            "name": "User Profile",
+            "role": "account",
+            "rect": {
+              "x": 16,
+              "y": 1124,
+              "w": 256,
+              "h": 52
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarFooter",
+              "props": {}
+            },
+            "content": null,
+            "children": [
+              {
+                "id": "node_user_name",
+                "name": "User Name",
+                "role": "label",
+                "rect": {
+                  "x": 60.00000327368666,
+                  "y": 1126.0001504503043,
+                  "w": 159.99999245799802,
+                  "h": 24.00000000000011
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "User"
+                },
+                "children": []
+              },
+              {
+                "id": "node_user_email",
+                "name": "User Email",
+                "role": "caption",
+                "rect": {
+                  "x": 60.00000277637233,
+                  "y": 1150.0001504503043,
+                  "w": 180.0000029911277,
+                  "h": 25.999849549695796
+                },
+                "shape": "text",
+                "component": null,
+                "content": {
+                  "text": "user@example.com"
+                },
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "node_header",
+        "name": "Dashboard Header",
+        "role": "header",
+        "rect": {
+          "x": 288,
+          "y": 0,
+          "w": 1152,
+          "h": 64
+        },
+        "shape": "rectangle",
+        "component": null,
+        "content": null,
+        "children": [
+          {
+            "id": "node_sidebar_trigger",
+            "name": "Sidebar Trigger",
+            "role": "control",
+            "rect": {
+              "x": 312,
+              "y": 18,
+              "w": 28,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "SidebarTrigger",
+              "props": {}
+            },
+            "content": null,
+            "children": []
+          },
+          {
+            "id": "node_breadcrumb",
+            "name": "Courses Breadcrumb",
+            "role": "breadcrumb",
+            "rect": {
+              "x": 368,
+              "y": 20,
+              "w": 160,
+              "h": 24
+            },
+            "shape": "text",
+            "component": null,
+            "content": {
+              "text": "课程"
+            },
+            "children": []
+          },
+          {
+            "id": "node_theme_switcher",
+            "name": "Theme Switcher",
+            "role": "control",
+            "rect": {
+              "x": 1288,
+              "y": 18,
+              "w": 28,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "Button",
+              "props": {
+                "label": "主题"
+              }
+            },
+            "content": null,
+            "children": []
+          },
+          {
+            "id": "node_locale_switcher",
+            "name": "Locale Switcher",
+            "role": "control",
+            "rect": {
+              "x": 1332,
+              "y": 18,
+              "w": 84,
+              "h": 28
+            },
+            "shape": "rectangle",
+            "component": {
+              "ref": "Button",
+              "props": {
+                "label": "简体中文"
+              }
+            },
+            "content": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "node_main",
+        "name": "Course Main",
+        "role": "main",
+        "rect": {
+          "x": 288,
+          "y": 64,
+          "w": 1152,
+          "h": 1136
+        },
+        "shape": "rectangle",
+        "component": null,
+        "content": null,
+        "children": []
+      }
+    ]
+  }
+}

@@ -56,14 +56,17 @@ Feature Map 的固定关系是：
 - `xuan-canvas-layout`：只修改布局、组件、Props 和 Content。
 - `xuan`：在跨阶段请求中负责路由。
 
-MCP Server 提供四个工具：
+MCP Server 提供五个工具：
 
 - `initialize_xuan_document`
+- `create_xuan_page`
 - `get_xuan_document_context`
 - `apply_xuan_ia_operations`
 - `apply_xuan_canvas_operations`
 
 所有写入都使用 revision 检查、原子批处理和 `clientMutationId` 幂等键。IA 工具不会修改 Canvas 数据，Canvas 工具也不会改变 IA 树。
+
+创建新页面时调用 `create_xuan_page`。Agent 会打开或复用内置浏览器中的编辑器；运行中的编辑器会自动新增并切换页面，不需要生成独立 JSON 或手动导入。
 
 ### Prompt 示例
 
@@ -113,6 +116,7 @@ MCP Server 提供四个工具：
 
 - Feature Map：`.xuan/feature-map.md`
 - 原型文档：`.xuan/document.json`
+- 页面快照：`.xuan/pages/*.json`
 - 浏览器本地页面状态：`xuan.pages.v1`
 - 幂等记录：`.xuan/mutations.json`（运行时文件，不提交）
 
@@ -222,14 +226,17 @@ The repository includes four Skills:
 - `xuan-canvas-layout`: change only layout, components, props, and content.
 - `xuan`: route requests that span multiple stages.
 
-The MCP Server exposes four tools:
+The MCP Server exposes five tools:
 
 - `initialize_xuan_document`
+- `create_xuan_page`
 - `get_xuan_document_context`
 - `apply_xuan_ia_operations`
 - `apply_xuan_canvas_operations`
 
 Writes use revision checks, atomic batches, and idempotent `clientMutationId` values. IA tools cannot change Canvas data, and Canvas tools cannot change the IA tree.
+
+Use `create_xuan_page` for a new page. The Agent opens or reuses the editor in the built-in browser; a running editor adds and opens the page automatically, with no standalone JSON or manual import.
 
 ### Prompt examples
 
@@ -279,6 +286,7 @@ Product idea:
 
 - Feature Map: `.xuan/feature-map.md`
 - Prototype document: `.xuan/document.json`
+- Page snapshots: `.xuan/pages/*.json`
 - Browser page state: `xuan.pages.v1`
 - Idempotency log: `.xuan/mutations.json` (runtime only)
 

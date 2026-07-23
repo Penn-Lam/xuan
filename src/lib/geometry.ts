@@ -68,6 +68,47 @@ export function siblings(doc: XuanDocument, id: string): string[] {
   return doc.nodes[node.parentId].childrenIds
 }
 
+/**
+ * 多选移动时的「顶层」节点：祖先已在选区的节点会随父一起动，
+ * 再对它们施加位移会造成双重偏移，故过滤掉。
+ */
+export function topLevelSelectedIds(doc: XuanDocument, selectedIds: string[]): string[] {
+  const selected = new Set(selectedIds)
+  return selectedIds.filter((id) => {
+    const node = doc.nodes[id]
+    if (!node) return false
+    let parentId = node.parentId
+    while (parentId) {
+      if (selected.has(parentId)) return false
+      parentId = doc.nodes[parentId]?.parentId ?? null
+    }
+    return true
+  })
+}
+
+/** 两轴对齐矩形是否相交（含边界触碰） */
+export function rectsIntersect(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+}
+
+/**
+ * 框选命中：绝对坐标与 marquee 相交的节点（默认排除 root 页面框）。
+ */
+export function hitTestMarquee(
+  doc: XuanDocument,
+  marquee: Rect,
+  options?: { includeRoot?: boolean },
+): string[] {
+  const includeRoot = options?.includeRoot ?? false
+  const hits: string[] = []
+  for (const id of Object.keys(doc.nodes)) {
+    if (!includeRoot && id === doc.rootId) continue
+    if (!doc.canvas[id]) continue
+    if (rectsIntersect(absoluteRect(doc, id), marquee)) hits.push(id)
+  }
+  return hits
+}
+
 /* ----------------------- 树形导航（方向键） ----------------------- */
 
 /** 导航目标 ID（不修改文档） */

@@ -6,6 +6,7 @@ const DOCUMENT_DIRECTORY = ".xuan"
 const DOCUMENT_FILE = "document.json"
 const MUTATION_FILE = "mutations.json"
 const LOCK_FILE = ".document.lock"
+const PAGE_DIRECTORY = "pages"
 const MAX_MUTATIONS = 100
 
 export class DocumentNotFoundError extends Error {}
@@ -27,6 +28,7 @@ function workspacePaths(projectPath) {
     document: path.join(directory, DOCUMENT_FILE),
     mutations: path.join(directory, MUTATION_FILE),
     lock: path.join(directory, LOCK_FILE),
+    pages: path.join(directory, PAGE_DIRECTORY),
   }
 }
 
@@ -144,6 +146,13 @@ async function atomicWrite(file, value) {
   await rename(temporaryFile, file)
 }
 
+async function writeDocument(paths, document) {
+  await mkdir(paths.pages, { recursive: true })
+  const pageFile = path.join(paths.pages, `${revisionFor({ rootId: document.tree.id })}.json`)
+  await atomicWrite(paths.document, document)
+  await atomicWrite(pageFile, document)
+}
+
 async function acquireLock(paths) {
   await mkdir(paths.directory, { recursive: true })
   const startedAt = Date.now()
@@ -177,10 +186,9 @@ async function withDocumentLock(projectPath, callback) {
   }
 }
 
-function blankDocument(name, viewport) {
+function blankDocument(name, viewport, rootId = "node_root") {
   const width = viewport?.width ?? 1440
   const height = viewport?.height ?? 900
-  const rootId = "node_root"
   return {
     version: "2.0",
     meta: {
@@ -210,7 +218,24 @@ export async function initializeDocument(projectPath, options = {}) {
       if (error?.code !== "ENOENT") throw error
     }
     const document = assertDocument(blankDocument(options.name ?? "Untitled Page", options.viewport))
-    await atomicWrite(paths.document, document)
+    await writeDocument(paths, document)
+    return stateFrom(document)
+  })
+}
+
+export async function createDocument(projectPath, options = {}) {
+  return withDocumentLock(projectPath, async (paths) => {
+    try {
+      await writeDocument(paths, assertDocument(await readJson(paths.document)))
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error
+    }
+    const rootId = `node_${randomUUID().replaceAll("-", "").slice(0, 12)}`
+    const document = assertDocument(
+      blankDocument(options.name ?? "Untitled Page", options.viewport, rootId),
+    )
+    await writeDocument(paths, document)
+    await atomicWrite(paths.mutations, [])
     return stateFrom(document)
   })
 }
@@ -243,7 +268,7 @@ export async function mutateDocument(projectPath, options) {
     }
 
     const next = assertDocument(await mutate(structuredClone(current)))
-    await atomicWrite(paths.document, next)
+    await writeDocument(paths, next)
     await atomicWrite(paths.mutations, [...mutations, clientMutationId].slice(-MAX_MUTATIONS))
     return stateFrom(next)
   })
@@ -256,4 +281,3 @@ export async function replaceDocument(projectPath, options) {
     mutate: () => assertDocument(options.document),
   })
 }
-

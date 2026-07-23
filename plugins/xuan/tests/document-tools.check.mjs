@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdtemp, readFile, rm } from "node:fs/promises"
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
@@ -123,6 +123,7 @@ try {
     [
       "apply_xuan_canvas_operations",
       "apply_xuan_ia_operations",
+      "create_xuan_page",
       "get_xuan_document_context",
       "initialize_xuan_document",
     ],
@@ -133,6 +134,14 @@ try {
   })
   assert.equal(contextResult.isError, undefined)
   assert.equal(contextResult.structuredContent.revision, canvasMutation.revision)
+  const createResult = await client.callTool({
+    name: "create_xuan_page",
+    arguments: { projectPath: workspace, name: "New Agent Page" },
+  })
+  assert.equal(createResult.isError, undefined)
+  assert.equal(createResult.structuredContent.meta.name, "New Agent Page")
+  assert.notEqual(createResult.structuredContent.rootId, initialized.document.tree.id)
+  assert.equal((await readdir(path.join(workspace, ".xuan/pages"))).length, 2)
   await client.close()
 
   console.log("xuan agent tools: ok")

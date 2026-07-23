@@ -26,7 +26,7 @@ src/
 ├── lib/
 │   ├── utils.ts                # cn() shadcn 标准工具
 │   ├── id.ts                   # nanoid 包装（genNodeId/genPageId）
-│   └── geometry.ts             # clampRect/absoluteRect/isDescendant/collectDescendants
+│   └── geometry.ts             # clampRect/absoluteRect/topLevelSelectedIds/树形导航
 ├── model/                      # 纯函数层，无 React 依赖（CLI 也复用）
 │   ├── factories.ts            # createBlankPage/createDefaultDocument（默认文档=JSON 反序列化）
 │   ├── default-document.json   # 默认模板（Operations Dashboard，导出格式）
@@ -41,7 +41,7 @@ src/
 │   ├── ui/                     # shadcn 组件
 │   ├── shell/                  # Header（页面名/模式/导入导出）+ Inspector + PageMenu
 │   ├── mindmap/                # IA 模式：React Flow + d3.tree + 自定义节点
-│   ├── canvas/                 # Canvas 模式：手写嵌套绝对定位 + 拖拽/resize
+│   ├── canvas/                 # Canvas 模式：嵌套定位 + 多选拖 + 框选 + 键盘微移
 │   └── inspector/              # Basics/Component/Content/NodePreview 四个区块
 └── prompts/generation.ts       # AI 生成 prompt 模板
 ```
@@ -55,13 +55,16 @@ src/
 纯函数，无 React 依赖。`materialize/serialize/deserialize/factories` 都是 CLI 可直接复用的。这是「导出格式 = Agent 格式」的技术基础。
 
 ### store
-Zustand + Immer + 手写 patch undo/redo + persist。persist 只存 `pages + activePageId`（会话态不持久化）。`History<T>` 类管理 past/future 栈，上限 100。
+Zustand + Immer + 手写 patch undo/redo + persist。persist 只存 `pages + activePageId`（会话态不持久化）。`History<T>`：`commit` / `apply`(live) / `recordTransition`。Canvas live batch 由 `updateCanvasRects({history:false})` + `sealHistoryBatch` 管理（方向键连击/拖拽共用）。
 
 ### IA 模式
 React Flow v12 + `d3-hierarchy` 的 `d3.tree().nodeSize([104, 284])`。从扁平树生成 RF nodes/edges，自定义 mindmap 节点（白卡片 + role badge + 折叠开关）。
 
 ### Canvas 模式
-手写嵌套绝对定位 div。`CanvasNode` 递归渲染子节点，选中时显示 8 方向 resize 手柄。拖拽移动和 resize 都通过 pointer 事件 + `updateCanvasRect` 写回 store。
+手写嵌套绝对定位 div。`CanvasNode` 递归渲染子节点，选中时显示 8 方向 resize 手柄。
+- **位移**：多选顶层整组同移；方向键 1px / Shift+方向键 10px。
+- **历史**：store 级 history batch——live 更新自动记下 baseline，`sealHistoryBatch` 压成一条 undo。拖拽松手 / 方向键停顿 400ms 后 seal；其它 commit/undo 也会自动 seal。
+- **框选**：空白处拖拽 marquee（Shift 追加）；`Space`/中键/右键拖 = pan。root 本体不拖移，留给框选。
 
 ## 设计系统
 

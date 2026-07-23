@@ -10,7 +10,7 @@ Translate feature intent into semantic information architecture. IA defines **wh
 ## Required workflow
 
 1. Read `.xuan/feature-map.md` when present. If the request starts from vague source material and no Feature Map exists, use `xuan-feature-map` first.
-2. Call `get_xuan_document_context` with the active project root. If the document is missing, call `initialize_xuan_document`, then read context again.
+2. Call `get_xuan_document_context` with the active project root. If the user requested a new page, call `create_xuan_page`; if they are continuing a missing document, call `initialize_xuan_document`. Then read context again.
 3. Identify the smallest IA branch needed to support the selected P0/P1 features. Preserve unaffected nodes and stable IDs.
 4. Call `apply_xuan_ia_operations` with the current `expectedRevision`, a new stable `clientMutationId`, and one atomic operation batch.
 5. Read context again and verify names, roles, parent-child order, feature coverage, and the returned revision.
@@ -33,3 +33,4 @@ Choose semantic roles such as `page`, `navigation`, `header`, `main`, `section`,
 
 Do not bind components, edit props/content intent, set shapes, or place coordinates. New nodes receive neutral placeholder geometry until the Canvas stage.
 
+Never write an export JSON for manual import. A running editor automatically adds pages created by `create_xuan_page` and switches to them.

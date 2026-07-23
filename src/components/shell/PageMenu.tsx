@@ -1,5 +1,8 @@
 // ============================================================
 //  PageMenu —— 多页面切换/创建/删除下拉
+//  每页 = DropdownMenuSub：trigger 显示页名（点击切换），
+//  hover 展开子菜单「复制 / 删除」
+//  base-ui Submenu 自带安全三角区 + delay/closeDelay 防误触
 // ============================================================
 import { Plus, File, Trash } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
@@ -10,6 +13,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useI18n } from "@/lib/i18n"
@@ -35,23 +41,25 @@ export function PageMenu() {
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuGroup>
           {pageList.map(([id, doc]) => (
-            <DropdownMenuItem
-              key={id}
-              onClick={() => switchPage(id)}
-              className="justify-between"
-              data-active={id === activePageId}
-            >
-              <span className="truncate">{doc.meta.name}</span>
-              {pageList.length > 1 && (
-                <Trash
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deletePage(id)
-                  }}
-                />
-              )}
-            </DropdownMenuItem>
+            <DropdownMenuSub key={id}>
+              <DropdownMenuSubTrigger
+                data-active={id === activePageId}
+                onClick={() => switchPage(id)}
+              >
+                <span className="truncate">{doc.meta.name}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {pageList.length > 1 && (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => deletePage(id)}
+                  >
+                    <Trash />
+                    {t("Delete")}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -65,3 +73,4 @@ export function PageMenu() {
     </DropdownMenu>
   )
 }
+

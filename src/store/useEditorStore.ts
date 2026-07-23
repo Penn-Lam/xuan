@@ -43,6 +43,8 @@ interface EditorState {
   /* ---- 模式与选择 ---- */
   setMode: (mode: EditorMode) => void
   selectNode: (id: string | null) => void
+  /** 批量设置选区（框选 / 多选替换） */
+  selectNodes: (ids: string[]) => void
   toggleNodeSelection: (id: string) => void
   setRenaming: (id: string | null) => void
 
@@ -64,6 +66,20 @@ interface EditorState {
   ) => void
   setContent: (id: string, content: Record<string, unknown> | null) => void
   updateCanvasRect: (id: string, rect: Rect) => void
+  /**
+   * 批量更新多个节点 rect。
+   * history:true（默认）= 立即记一条 undo；
+   * false = 并入当前 history batch（首次自动记下 baseline），需 sealHistoryBatch 收口。
+   */
+  updateCanvasRects: (
+    updates: { id: string; rect: Rect }[],
+    options?: { history?: boolean },
+  ) => void
+  /**
+   * 把当前 live batch 压成一条 undo。
+   * 拖拽松手 / 方向键连击停顿后调用；其它 commit/undo 也会自动 seal。
+   */
+  sealHistoryBatch: () => void
   updateCanvasData: (id: string, data: Partial<CanvasData>) => void
   reparentNode: (id: string, newParentId: string) => void
   toggleCollapse: (id: string) => void
@@ -75,26 +91,84 @@ interface EditorState {
 
   /* ---- 导入/导出/文档替换 ---- */
   replaceDocument: (doc: XuanDocument) => void
+  upsertAgentDocument: (doc: XuanDocument) => void
 
   /* ---- undo/redo ---- */
   undo: () => void
   redo: () => void
 }
 
-/** 把 document 写回 pages[activePageId]（内部辅助） */
+/**
+ * Live history batch baseline。
+ * 拖拽 / 连点方向键等「一段手势」共享同一 baseline，seal 时压成一条 undo。
+ * 放模块作用域，避免无关 re-render。
+ */
+let historyBatchBaseline: XuanDocument | null = null
 
-/** 可撤销的 mutator 包装 */
+function sealHistoryBatchInternal(get: () => EditorState): void {
+  if (!historyBatchBaseline) return
+  const state = get()
+  state.history.recordTransition(historyBatchBaseline, state.document)
+  historyBatchBaseline = null
+}
+
+function ensureHistoryBatch(get: () => EditorState): void {
+  if (!historyBatchBaseline) historyBatchBaseline = get().document
+}
+
+/** 丢弃未 seal 的 batch（换页/换文档时，不写入 history） */
+function discardHistoryBatch(): void {
+  historyBatchBaseline = null
+}
+
+/** 可撤销的 mutator 包装（先收口未 seal 的 live batch） */
 function commit(
   get: () => EditorState,
   set: (partial: Partial<EditorState>) => void,
   mutator: (draft: XuanDocument) => void,
 ): void {
+  sealHistoryBatchInternal(get)
   const state = get()
   const next = state.history.commit(state.document, mutator)
   set({
     document: next,
     pages: { ...state.pages, [state.activePageId]: next },
   })
+}
+
+/** 无历史 mutator（拖拽 / 连点方向键 live 预览） */
+function applyLive(
+  get: () => EditorState,
+  set: (partial: Partial<EditorState>) => void,
+  mutator: (draft: XuanDocument) => void,
+): void {
+  ensureHistoryBatch(get)
+  const state = get()
+  const next = state.history.apply(state.document, mutator)
+  set({
+    document: next,
+    pages: { ...state.pages, [state.activePageId]: next },
+  })
+}
+
+/** 对 draft 应用一批 rect 更新（commit / live 共用） */
+function applyRectUpdates(
+  draft: XuanDocument,
+  updates: { id: string; rect: Rect }[],
+): void {
+  for (const { id, rect } of updates) {
+    const canvas = draft.canvas[id]
+    const node = draft.nodes[id]
+    if (!canvas || !node) continue
+    if (node.parentId) {
+      const parentCanvas = draft.canvas[node.parentId]
+      canvas.rect = clampRect(rect, parentCanvas.rect)
+    } else {
+      canvas.rect = rect
+      draft.meta.viewport = { width: rect.w, height: rect.h }
+    }
+    canvas.placed = true
+  }
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -137,6 +211,13 @@ export const useEditorStore = create<EditorState>()(
         selectNode: (id) =>
           set({ selectedId: id, selectedIds: id ? [id] : [], renamingId: null }),
 
+        selectNodes: (ids) =>
+          set({
+            selectedIds: ids,
+            selectedId: ids[ids.length - 1] ?? null,
+            renamingId: null,
+          }),
+
         toggleNodeSelection: (id) => {
           const state = get()
           const selectedIds = state.selectedIds.includes(id)
@@ -155,11 +236,13 @@ export const useEditorStore = create<EditorState>()(
 
         /* ============ 页面管理 ============ */
         createPage: (name) => {
+          discardHistoryBatch()
           const state = get()
           const id = genPageId()
           const viewport = state.document.meta.viewport
           const doc = createBlankPage(name?.trim() || "Untitled", viewport)
           const pages = { ...state.pages, [id]: doc }
+          discardHistoryBatch()
           set({
             pages,
             activePageId: id,
@@ -174,6 +257,8 @@ export const useEditorStore = create<EditorState>()(
           const state = get()
           const doc = state.pages[id]
           if (!doc) return
+          discardHistoryBatch()
+          discardHistoryBatch()
           set({
             activePageId: id,
             document: doc,
@@ -186,11 +271,13 @@ export const useEditorStore = create<EditorState>()(
         deletePage: (id) => {
           const state = get()
           if (Object.keys(state.pages).length <= 1) return
+          discardHistoryBatch()
           const pages = { ...state.pages }
           delete pages[id]
           const nextActive =
             id === state.activePageId ? Object.keys(pages)[0] : state.activePageId
           const doc = pages[nextActive]
+          discardHistoryBatch()
           set({
             pages,
             activePageId: nextActive,
@@ -295,20 +382,19 @@ export const useEditorStore = create<EditorState>()(
         },
 
         updateCanvasRect: (id, rect) => {
-          commit(get, set, (draft) => {
-            const canvas = draft.canvas[id]
-            const node = draft.nodes[id]
-            if (!canvas || !node) return
-            if (node.parentId) {
-              const parentCanvas = draft.canvas[node.parentId]
-              canvas.rect = clampRect(rect, parentCanvas.rect)
-            } else {
-              // root 节点：同时更新 viewport
-              canvas.rect = rect
-              draft.meta.viewport = { width: rect.w, height: rect.h }
-            }
-            canvas.placed = true
-          })
+          get().updateCanvasRects([{ id, rect }])
+        },
+
+        updateCanvasRects: (updates, options) => {
+          if (updates.length === 0) return
+          const withHistory = options?.history !== false
+          const mutator = (draft: XuanDocument) => applyRectUpdates(draft, updates)
+          if (withHistory) commit(get, set, mutator)
+          else applyLive(get, set, mutator)
+        },
+
+        sealHistoryBatch: () => {
+          sealHistoryBatchInternal(get)
         },
 
         updateCanvasData: (id, data) => {
@@ -433,8 +519,10 @@ export const useEditorStore = create<EditorState>()(
 
         /* ============ 导入/替换 ============ */
         replaceDocument: (doc) => {
+          discardHistoryBatch()
           const state = get()
           const pages = { ...state.pages, [state.activePageId]: doc }
+          discardHistoryBatch()
           set({
             pages,
             document: doc,
@@ -444,8 +532,27 @@ export const useEditorStore = create<EditorState>()(
           })
         },
 
+        upsertAgentDocument: (doc) => {
+          discardHistoryBatch()
+          const state = get()
+          const pageId =
+            Object.keys(state.pages).find((id) => state.pages[id].rootId === doc.rootId) ??
+            genPageId()
+          discardHistoryBatch()
+          set({
+            pages: { ...state.pages, [pageId]: doc },
+            activePageId: pageId,
+            document: doc,
+            selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
+            history: new History(),
+          })
+        },
+
         /* ============ undo/redo ============ */
         undo: () => {
+          // 先 seal live batch，使 ⌘Z 能撤销刚结束的拖拽/连点微移
+          sealHistoryBatchInternal(get)
           const state = get()
           const prev = state.history.undo(state.document)
           set({
@@ -454,6 +561,7 @@ export const useEditorStore = create<EditorState>()(
           })
         },
         redo: () => {
+          sealHistoryBatchInternal(get)
           const state = get()
           const next = state.history.redo(state.document)
           set({
@@ -473,6 +581,7 @@ export const useEditorStore = create<EditorState>()(
         if (!p.pages || !p.activePageId || !p.pages[p.activePageId]) {
           return current
         }
+        discardHistoryBatch()
         return {
           ...current,
           pages: p.pages,

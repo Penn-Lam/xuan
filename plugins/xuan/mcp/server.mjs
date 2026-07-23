@@ -5,6 +5,7 @@ import { z } from "zod"
 import {
   DocumentNotFoundError,
   RevisionConflictError,
+  createDocument,
   initializeDocument,
   mutateDocument,
   readDocumentState,
@@ -16,6 +17,7 @@ import {
 } from "./document-operations.mjs"
 
 const server = new McpServer({ name: "xuan", version: "0.1.0" })
+const editorUrl = process.env.XUAN_EDITOR_URL ?? "http://localhost:5173"
 
 const projectPath = z
   .string()
@@ -144,6 +146,39 @@ server.registerTool(
 )
 
 server.registerTool(
+  "create_xuan_page",
+  {
+    title: "Create Xuan page",
+    description:
+      "Create a new Xuan page and make it active without discarding prior pages. A running editor adds and opens it automatically; never create a standalone JSON export for this workflow.",
+    inputSchema: {
+      projectPath,
+      name: z.string().min(1),
+      viewport: z
+        .object({ width: z.number().positive(), height: z.number().positive() })
+        .optional(),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  },
+  async ({ projectPath: workspace, name, viewport }) => {
+    try {
+      const state = await createDocument(workspace, { name, viewport })
+      return success(
+        {
+          projectPath: workspace,
+          editorUrl,
+          revision: state.revision,
+          ...documentContext(state.document),
+        },
+        `Created page “${name}” at revision ${state.revision}. Open ${editorUrl}; the editor will load it automatically.`,
+      )
+    } catch (error) {
+      return failure(error)
+    }
+  },
+)
+
+server.registerTool(
   "get_xuan_document_context",
   {
     title: "Get Xuan document context",
@@ -245,4 +280,3 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-
