@@ -70,12 +70,14 @@ function ShortcutHints({ mode }: { mode: "mindmap" | "canvas" }) {
         ]
       : [
           [["⌥", "Click"], "Multi-select"],
+          [["⌥", "Drag"], "Duplicate drag"],
           [["⇧", "Drag"], "Lock axis"],
+          [["⇧", "Resize"], "Keep ratio"],
+          [["⌥", "Resize"], "From center"],
           [["Drag"], "Marquee"],
           [["Space", "Drag"], "Pan"],
           [["⌘", "Scroll"], "Zoom"],
           [["↑↓←→"], "Nudge"],
-          [["⇧", "↑↓←→"], "Nudge 10px"],
           [["⌫"], "Delete"],
         ]
 

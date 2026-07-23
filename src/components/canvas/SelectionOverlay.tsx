@@ -1,6 +1,6 @@
 // ============================================================
-//  SelectionOverlay —— 选区一等公民（tldraw SelectionForeground 思路）
-//  顶层选中节点的 AABB 框 + 8 向手柄；resize 在此统一处理
+//  SelectionOverlay —— 选区 AABB + 8 手柄
+//  resize：Shift 锁比例、Alt 中心缩放；边缘滚动
 // ============================================================
 import { useCallback, useMemo, useRef } from "react"
 import { useEditorStore } from "@/store/useEditorStore"
@@ -23,16 +23,83 @@ import {
   handlePositionClass,
   type ResizeDir,
 } from "./selectionHandles"
+import { useCanvasViewport } from "./CanvasViewportContext"
 
 interface SelectionOverlayProps {
   zoom: number
   snapToComponents?: boolean
 }
 
+/** 根据手柄 + 修饰键计算新组 AABB（Shift=锁比例，Alt=中心缩放） */
+function computeResizedGroup(
+  g: Rect,
+  dir: ResizeDir,
+  rawDx: number,
+  rawDy: number,
+  shiftKey: boolean,
+  altKey: boolean,
+): Rect {
+  const aspect = g.w / Math.max(1e-6, g.h)
+  const isCorner =
+    (dir.includes("n") || dir.includes("s")) &&
+    (dir.includes("e") || dir.includes("w"))
+
+  // 先算「固定对边」下的尺寸变化量
+  let dw = 0
+  let dh = 0
+  if (dir.includes("e")) dw = rawDx
+  if (dir.includes("w")) dw = -rawDx
+  if (dir.includes("s")) dh = rawDy
+  if (dir.includes("n")) dh = -rawDy
+
+  if (shiftKey && isCorner) {
+    // 以变化更大的边驱动比例
+    if (Math.abs(dw) / aspect >= Math.abs(dh)) {
+      dh = dw / aspect
+    } else {
+      dw = dh * aspect
+    }
+  } else if (shiftKey && !isCorner) {
+    if (dir === "e" || dir === "w") dh = dw / aspect
+    else dw = dh * aspect
+  }
+
+  let w = Math.max(MIN_SIZE, g.w + (altKey ? 2 * dw : dw))
+  let h = Math.max(MIN_SIZE, g.h + (altKey ? 2 * dh : dh))
+
+  // 再次锁比例（防止 min-size 破坏）
+  if (shiftKey) {
+    if (Math.abs(w / h - aspect) > 0.001) {
+      if (isCorner || dir === "e" || dir === "w") h = w / aspect
+      else w = h * aspect
+    }
+  }
+
+  let x = g.x
+  let y = g.y
+  if (altKey) {
+    x = g.x + g.w / 2 - w / 2
+    y = g.y + g.h / 2 - h / 2
+  } else {
+    if (dir.includes("w")) x = g.x + g.w - w
+    if (dir.includes("n")) y = g.y + g.h - h
+    // 边手柄 + shift：另一维居中
+    if (shiftKey && !isCorner) {
+      if (dir === "e" || dir === "w") y = g.y + (g.h - h) / 2
+      if (dir === "n" || dir === "s") x = g.x + (g.w - w) / 2
+    }
+  }
+
+  return { x, y, w, h }
+}
+
 export function SelectionOverlay({
-  zoom,
+  zoom: zoomProp = 1,
   snapToComponents = true,
 }: SelectionOverlayProps) {
+  const viewport = useCanvasViewport()
+  const zoom = viewport.zoom || zoomProp
+
   const document = useEditorStore((s) => s.document)
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
@@ -45,12 +112,10 @@ export function SelectionOverlay({
     [document, selectedIds],
   )
 
-  // 可操作选区：排除「仅 root 且无其它」时的整页框？root 单独选中仍可 resize 页面
   const operableIds = useMemo(() => {
     return topIds.filter((id) => {
       const n = document.nodes[id]
       if (!n) return false
-      // 多选时不把 root 算进 AABB（root 是页面框）
       if (!n.parentId && topIds.length > 1) return false
       return Boolean(document.canvas[id])
     })
@@ -65,16 +130,15 @@ export function SelectionOverlay({
   const dragRef = useRef<{
     startX: number
     startY: number
+    startPanX: number
+    startPanY: number
     dir: ResizeDir
-    /** 开始时组 AABB */
     groupOrig: Rect
-    /** 各节点相对组的归一化位置 + 原始相对 rect */
     items: Array<{
       id: string
       origRect: Rect
       origAbs: Rect
       parentAbs: Rect
-      /** 相对 group 的 left/top/w/h 比例（多选缩放） */
       rel: { x: number; y: number; w: number; h: number }
     }>
     session: ReturnType<typeof createSnapSession>
@@ -95,27 +159,11 @@ export function SelectionOverlay({
         .map((id) => {
           const n = doc.nodes[id]
           const c = doc.canvas[id]
-          if (!n || !c || !n.parentId) {
-            // root：特殊处理
-            if (!n?.parentId && c) {
-              const origAbs = absoluteRect(doc, id)
-              return {
-                id,
-                origRect: { ...c.rect },
-                origAbs,
-                parentAbs: { x: 0, y: 0, w: origAbs.w, h: origAbs.h },
-                rel: {
-                  x: (origAbs.x - bounds.x) / Math.max(1, bounds.w),
-                  y: (origAbs.y - bounds.y) / Math.max(1, bounds.h),
-                  w: origAbs.w / Math.max(1, bounds.w),
-                  h: origAbs.h / Math.max(1, bounds.h),
-                },
-              }
-            }
-            return null
-          }
+          if (!n || !c) return null
           const origAbs = absoluteRect(doc, id)
-          const parentAbs = absoluteRect(doc, n.parentId)
+          const parentAbs = n.parentId
+            ? absoluteRect(doc, n.parentId)
+            : { x: 0, y: 0, w: origAbs.w, h: origAbs.h }
           return {
             id,
             origRect: { ...c.rect },
@@ -133,7 +181,6 @@ export function SelectionOverlay({
 
       if (items.length === 0) return
 
-      // 吸附目标：所有选区节点的同父兄弟（并集去重）
       const moving = new Set(operableIds)
       const siblingMap = new Map<string, Rect>()
       for (const id of operableIds) {
@@ -144,16 +191,15 @@ export function SelectionOverlay({
           siblingMap.set(cid, absoluteRect(doc, cid))
         }
       }
-      // 单节点时用其 parent；多选用第一个
       const first = doc.nodes[operableIds[0]]
       const parentRect = first?.parentId
         ? absoluteRect(doc, first.parentId)
         : absoluteRect(doc, doc.rootId)
       const canvasRect = absoluteRect(doc, doc.rootId)
       const targets = buildSnapTargets({
-        siblingRects: [...siblingMap.entries()].map(([id, bounds]) => ({
+        siblingRects: [...siblingMap.entries()].map(([id, b]) => ({
           id,
-          bounds,
+          bounds: b,
         })),
         parentRect,
         parentId: first?.parentId ?? doc.rootId,
@@ -162,10 +208,13 @@ export function SelectionOverlay({
       })
 
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      const startPan = viewport.edgeScroll.begin()
 
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
+        startPanX: startPan.panX,
+        startPanY: startPan.panY,
         dir,
         groupOrig: { ...bounds },
         items,
@@ -177,33 +226,34 @@ export function SelectionOverlay({
       const onMove = (ev: PointerEvent) => {
         const drag = dragRef.current
         if (!drag) return
-        let rawDx = (ev.clientX - drag.startX) / zoom
-        let rawDy = (ev.clientY - drag.startY) / zoom
+        viewport.edgeScroll.tick(ev.clientX, ev.clientY)
+        const { dx: rawDx, dy: rawDy } = viewport.clientDeltaToDoc(
+          ev.clientX,
+          ev.clientY,
+          drag.startX,
+          drag.startY,
+          drag.startPanX,
+          drag.startPanY,
+        )
         if (!drag.dirty && Math.abs(rawDx) < 0.5 && Math.abs(rawDy) < 0.5) return
 
-        // 组 AABB resize
-        const g = drag.groupOrig
-        let x = g.x
-        let y = g.y
-        let w = g.w
-        let h = g.h
-        if (drag.dir.includes("e")) w = Math.max(MIN_SIZE, g.w + rawDx)
-        if (drag.dir.includes("s")) h = Math.max(MIN_SIZE, g.h + rawDy)
-        if (drag.dir.includes("w")) {
-          w = Math.max(MIN_SIZE, g.w - rawDx)
-          x = g.x + (g.w - w)
-        }
-        if (drag.dir.includes("n")) {
-          h = Math.max(MIN_SIZE, g.h - rawDy)
-          y = g.y + (g.h - h)
-        }
+        let groupRect = computeResizedGroup(
+          drag.groupOrig,
+          drag.dir,
+          rawDx,
+          rawDy,
+          ev.shiftKey,
+          ev.altKey,
+        )
 
-        let groupRect: Rect = { x, y, w, h }
-
-        if (snapToComponents && !ev.altKey && drag.items.length === 1) {
-          // 单选：点吸附 resize
+        // 单选且未按 Alt（中心缩放时跳过，避免与 alt 修饰冲突）时做点吸附
+        if (
+          snapToComponents &&
+          !ev.altKey &&
+          drag.items.length === 1
+        ) {
           const result = drag.session.resolveResize({
-            initialBounds: g,
+            initialBounds: drag.groupOrig,
             rawBounds: groupRect,
             targets: drag.targets,
             zoom,
@@ -220,11 +270,9 @@ export function SelectionOverlay({
           clearGuides()
         }
 
-        // 将组缩放映射回各节点
         const updates = drag.items.map((item) => {
-          const node = useEditorStore.getState().document.nodes[item.id]
-          if (!node?.parentId) {
-            // root：直接设为 groupRect
+          const n = useEditorStore.getState().document.nodes[item.id]
+          if (!n?.parentId) {
             return {
               id: item.id,
               rect: {
@@ -257,6 +305,7 @@ export function SelectionOverlay({
       const onUp = () => {
         const drag = dragRef.current
         dragRef.current = null
+        viewport.edgeScroll.end()
         drag?.session.reset()
         clearGuides()
         window.removeEventListener("pointermove", onMove)
@@ -276,12 +325,12 @@ export function SelectionOverlay({
       sealHistoryBatch,
       setIndicators,
       clearGuides,
+      viewport,
     ],
   )
 
   if (!bounds || operableIds.length === 0) return null
 
-  // 尺寸标注
   const label = `${Math.round(bounds.w)} × ${Math.round(bounds.h)}`
 
   return (
@@ -295,17 +344,10 @@ export function SelectionOverlay({
       }}
       data-selection-overlay="true"
     >
-      {/* 选区框 */}
       <div className="absolute inset-0 border-2 border-ring" />
-
-      {/* 尺寸标签 */}
-      <div
-        className="absolute left-1/2 top-full mt-1 -translate-x-1/2 rounded-sm bg-ring px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-primary-foreground"
-      >
+      <div className="absolute left-1/2 top-full mt-1 -translate-x-1/2 rounded-sm bg-ring px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-primary-foreground">
         {label}
       </div>
-
-      {/* 8 向手柄 */}
       {RESIZE_HANDLES.map((dir) => (
         <div
           key={dir}

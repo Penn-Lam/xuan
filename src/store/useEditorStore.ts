@@ -7,7 +7,13 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { CanvasData, FlatNode, MindmapData, Rect, XuanDocument } from "@/types/document"
 import { genNodeId, genPageId } from "@/lib/id"
-import { clampRect, collectDescendants, isDescendant } from "@/lib/geometry"
+import {
+  absoluteRect,
+  clampRect,
+  collectDescendants,
+  isDescendant,
+  topLevelSelectedIds,
+} from "@/lib/geometry"
 import { createBlankPage, createDefaultDocument } from "@/model/factories"
 import { materializeDocument } from "@/model/materialize"
 import { History } from "./undo"
@@ -89,6 +95,18 @@ interface EditorState {
   copySubtree: (id: string) => void
   pasteSubtree: (parentId: string) => string | null
   duplicateNode: (id: string) => string | null
+  /**
+   * 原位深拷贝一组顶层节点（保留相对坐标与子树结构），选中副本。
+   * Alt-拖复制用：返回新 id 列表（与输入顶层顺序对应）。
+   */
+  duplicateNodesInPlace: (ids: string[]) => string[]
+
+  /* ---- Canvas 布局命令 ---- */
+  alignNodes: (
+    ids: string[],
+    mode: "left" | "centerX" | "right" | "top" | "centerY" | "bottom",
+  ) => void
+  distributeNodes: (ids: string[], axis: "horizontal" | "vertical") => void
 
   /* ---- 导入/导出/文档替换 ---- */
   replaceDocument: (doc: XuanDocument) => void
@@ -580,6 +598,165 @@ export const useEditorStore = create<EditorState>()(
           if (!node?.parentId) return null
           get().copySubtree(id)
           return get().pasteSubtree(node.parentId)
+        },
+
+        duplicateNodesInPlace: (ids) => {
+          const state = get()
+          const doc = state.document
+          const tops = topLevelSelectedIds(doc, ids).filter(
+            (id) => doc.nodes[id]?.parentId != null,
+          )
+          if (tops.length === 0) return []
+
+          const newIds: string[] = []
+          commit(get, set, (draft) => {
+            const cloneTree = (srcId: string, parentId: string): string => {
+              const src = draft.nodes[srcId]
+              const srcCanvas = draft.canvas[srcId]
+              const srcMm = draft.mindmap[srcId]
+              const id = genNodeId()
+              draft.nodes[id] = {
+                id,
+                parentId,
+                childrenIds: [],
+                name: src.name,
+                role: src.role,
+                component: src.component ? { ...src.component, props: { ...src.component.props } } : null,
+                content: src.content ? { ...src.content } : null,
+              }
+              draft.canvas[id] = {
+                rect: { ...srcCanvas.rect },
+                shape: srcCanvas.shape,
+                placed: true,
+              }
+              draft.mindmap[id] = { collapsed: srcMm?.collapsed ?? false }
+              draft.nodes[parentId].childrenIds.push(id)
+              for (const cid of [...src.childrenIds]) {
+                cloneTree(cid, id)
+              }
+              return id
+            }
+
+            for (const srcId of tops) {
+              const parentId = draft.nodes[srcId].parentId!
+              newIds.push(cloneTree(srcId, parentId))
+            }
+          })
+          set({
+            selectedId: newIds[newIds.length - 1] ?? null,
+            selectedIds: newIds,
+          })
+          return newIds
+        },
+
+        alignNodes: (ids, mode) => {
+          const state = get()
+          const doc = state.document
+          const tops = topLevelSelectedIds(doc, ids).filter(
+            (id) => doc.nodes[id]?.parentId != null && doc.canvas[id],
+          )
+          if (tops.length < 2) return
+
+          const abs = tops.map((id) => ({ id, r: absoluteRect(doc, id) }))
+          let target = 0
+          if (mode === "left") target = Math.min(...abs.map((a) => a.r.x))
+          if (mode === "right") target = Math.max(...abs.map((a) => a.r.x + a.r.w))
+          if (mode === "centerX") {
+            const minX = Math.min(...abs.map((a) => a.r.x))
+            const maxX = Math.max(...abs.map((a) => a.r.x + a.r.w))
+            target = (minX + maxX) / 2
+          }
+          if (mode === "top") target = Math.min(...abs.map((a) => a.r.y))
+          if (mode === "bottom") target = Math.max(...abs.map((a) => a.r.y + a.r.h))
+          if (mode === "centerY") {
+            const minY = Math.min(...abs.map((a) => a.r.y))
+            const maxY = Math.max(...abs.map((a) => a.r.y + a.r.h))
+            target = (minY + maxY) / 2
+          }
+
+          const updates: { id: string; rect: Rect }[] = []
+          for (const { id, r } of abs) {
+            const node = doc.nodes[id]
+            if (!node?.parentId) continue
+            const parentAbs = absoluteRect(doc, node.parentId)
+            let nx = r.x
+            let ny = r.y
+            if (mode === "left") nx = target
+            if (mode === "right") nx = target - r.w
+            if (mode === "centerX") nx = target - r.w / 2
+            if (mode === "top") ny = target
+            if (mode === "bottom") ny = target - r.h
+            if (mode === "centerY") ny = target - r.h / 2
+            updates.push({
+              id,
+              rect: {
+                x: nx - parentAbs.x,
+                y: ny - parentAbs.y,
+                w: r.w,
+                h: r.h,
+              },
+            })
+          }
+          get().updateCanvasRects(updates)
+        },
+
+        distributeNodes: (ids, axis) => {
+          const state = get()
+          const doc = state.document
+          const tops = topLevelSelectedIds(doc, ids).filter(
+            (id) => doc.nodes[id]?.parentId != null && doc.canvas[id],
+          )
+          if (tops.length < 3) return
+
+          const abs = tops.map((id) => ({ id, r: absoluteRect(doc, id) }))
+          const updates: { id: string; rect: Rect }[] = []
+
+          if (axis === "horizontal") {
+            abs.sort((a, b) => a.r.x - b.r.x)
+            const first = abs[0].r
+            const last = abs[abs.length - 1].r
+            const span = last.x + last.w - first.x
+            const totalW = abs.reduce((s, a) => s + a.r.w, 0)
+            const gap = (span - totalW) / (abs.length - 1)
+            let cursor = first.x
+            for (const { id, r } of abs) {
+              const node = doc.nodes[id]!
+              const parentAbs = absoluteRect(doc, node.parentId!)
+              updates.push({
+                id,
+                rect: {
+                  x: cursor - parentAbs.x,
+                  y: r.y - parentAbs.y,
+                  w: r.w,
+                  h: r.h,
+                },
+              })
+              cursor += r.w + gap
+            }
+          } else {
+            abs.sort((a, b) => a.r.y - b.r.y)
+            const first = abs[0].r
+            const last = abs[abs.length - 1].r
+            const span = last.y + last.h - first.y
+            const totalH = abs.reduce((s, a) => s + a.r.h, 0)
+            const gap = (span - totalH) / (abs.length - 1)
+            let cursor = first.y
+            for (const { id, r } of abs) {
+              const node = doc.nodes[id]!
+              const parentAbs = absoluteRect(doc, node.parentId!)
+              updates.push({
+                id,
+                rect: {
+                  x: r.x - parentAbs.x,
+                  y: cursor - parentAbs.y,
+                  w: r.w,
+                  h: r.h,
+                },
+              })
+              cursor += r.h + gap
+            }
+          }
+          get().updateCanvasRects(updates)
         },
 
         /* ============ 导入/替换 ============ */

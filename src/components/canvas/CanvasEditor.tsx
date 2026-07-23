@@ -13,6 +13,14 @@ import {
   Magnet,
   DotsNine,
   ArrowsInSimple,
+  AlignLeft,
+  AlignCenterHorizontal,
+  AlignRight,
+  AlignTop,
+  AlignCenterVertical,
+  AlignBottom,
+  AlignCenterHorizontalSimple,
+  AlignCenterVerticalSimple,
 } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
 import { hitTestMarquee, topLevelSelectedIds } from "@/lib/geometry"
@@ -20,6 +28,7 @@ import type { Rect } from "@/types/document"
 import { CanvasNode } from "./CanvasNode"
 import { SelectionOverlay } from "./SelectionOverlay"
 import { SnapOverlay } from "./SnapOverlay"
+import { CanvasViewportProvider } from "./CanvasViewportContext"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -65,6 +74,8 @@ export function CanvasEditor() {
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const removeNodes = useEditorStore((s) => s.removeNodes)
   const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
+  const alignNodes = useEditorStore((s) => s.alignNodes)
+  const distributeNodes = useEditorStore((s) => s.distributeNodes)
   const rootId = document.rootId
   const rootCanvas = document.canvas[rootId]
   const viewport = document.meta.viewport
@@ -439,7 +450,17 @@ export function CanvasEditor() {
         ? "grab"
         : "default"
 
+  const operableCount = topLevelSelectedIds(document, selectedIds).filter(
+    (id) => document.nodes[id]?.parentId != null,
+  ).length
+
   return (
+    <CanvasViewportProvider
+      zoom={zoom}
+      pan={pan}
+      setPan={setPan}
+      containerRef={containerRef}
+    >
     <div
       ref={containerRef}
       role="application"
@@ -467,25 +488,59 @@ export function CanvasEditor() {
       }}
     >
       <TooltipProvider>
-        <div className="pointer-events-auto absolute left-3 top-3 z-10 flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
-          <ToolButton active={tool === "select"} onClick={() => setTool("select")} label={t("Select and move components")}>
-            <Cursor />
-          </ToolButton>
-          <ToolButton active={tool === "rectangle"} onClick={() => setTool("rectangle")} label={t("Draw rectangle components")}>
-            <Square />
-          </ToolButton>
-          <ToolButton active={snapToComponents} onClick={() => setSnapToComponents((value) => !value)} label={t("Snap to other components while dragging")}>
-            <Magnet />
-          </ToolButton>
-          <ToolButton active={showPixelGrid} onClick={() => setShowPixelGrid((value) => !value)} label={t("Show pixel grid")}>
-            <GridFour />
-          </ToolButton>
-          <ToolButton active={snapToPixelGrid} onClick={() => setSnapToPixelGrid((value) => !value)} label={t("Snap to the pixel grid while dragging")}>
-            <DotsNine />
-          </ToolButton>
-          <ToolButton onClick={() => setPan({ x: 0, y: 0 })} label={t("Center view")}>
-            <ArrowsInSimple />
-          </ToolButton>
+        <div className="pointer-events-auto absolute left-3 top-3 z-10 flex flex-col gap-1">
+          <div className="flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
+            <ToolButton active={tool === "select"} onClick={() => setTool("select")} label={t("Select and move components")}>
+              <Cursor />
+            </ToolButton>
+            <ToolButton active={tool === "rectangle"} onClick={() => setTool("rectangle")} label={t("Draw rectangle components")}>
+              <Square />
+            </ToolButton>
+            <ToolButton active={snapToComponents} onClick={() => setSnapToComponents((value) => !value)} label={t("Snap to other components while dragging")}>
+              <Magnet />
+            </ToolButton>
+            <ToolButton active={showPixelGrid} onClick={() => setShowPixelGrid((value) => !value)} label={t("Show pixel grid")}>
+              <GridFour />
+            </ToolButton>
+            <ToolButton active={snapToPixelGrid} onClick={() => setSnapToPixelGrid((value) => !value)} label={t("Snap to the pixel grid while dragging")}>
+              <DotsNine />
+            </ToolButton>
+            <ToolButton onClick={() => setPan({ x: 0, y: 0 })} label={t("Center view")}>
+              <ArrowsInSimple />
+            </ToolButton>
+          </div>
+          {operableCount >= 2 && (
+            <div className="flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
+              <ToolButton onClick={() => alignNodes(selectedIds, "left")} label={t("Align left")}>
+                <AlignLeft />
+              </ToolButton>
+              <ToolButton onClick={() => alignNodes(selectedIds, "centerX")} label={t("Align center")}>
+                <AlignCenterHorizontal />
+              </ToolButton>
+              <ToolButton onClick={() => alignNodes(selectedIds, "right")} label={t("Align right")}>
+                <AlignRight />
+              </ToolButton>
+              <ToolButton onClick={() => alignNodes(selectedIds, "top")} label={t("Align top")}>
+                <AlignTop />
+              </ToolButton>
+              <ToolButton onClick={() => alignNodes(selectedIds, "centerY")} label={t("Align middle")}>
+                <AlignCenterVertical />
+              </ToolButton>
+              <ToolButton onClick={() => alignNodes(selectedIds, "bottom")} label={t("Align bottom")}>
+                <AlignBottom />
+              </ToolButton>
+              {operableCount >= 3 && (
+                <>
+                  <ToolButton onClick={() => distributeNodes(selectedIds, "horizontal")} label={t("Distribute horizontal")}>
+                    <AlignCenterHorizontalSimple />
+                  </ToolButton>
+                  <ToolButton onClick={() => distributeNodes(selectedIds, "vertical")} label={t("Distribute vertical")}>
+                    <AlignCenterVerticalSimple />
+                  </ToolButton>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </TooltipProvider>
 
@@ -568,6 +623,7 @@ export function CanvasEditor() {
         </Button>
       </div>
     </div>
+    </CanvasViewportProvider>
   )
 }
 

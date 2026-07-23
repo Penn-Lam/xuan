@@ -1,7 +1,7 @@
 // ============================================================
 //  CanvasNode —— 嵌套绝对定位节点
-//  仅负责内容渲染 + 拖移；resize 由 SelectionOverlay 统一处理
-//  吸附：tldraw BoundsSnaps；Shift 锁轴
+//  拖移 + Shift 锁轴 + Alt-拖复制 + 边缘滚动
+//  resize 由 SelectionOverlay 统一处理
 // ============================================================
 import { memo, useCallback, useRef } from "react"
 import { Cube } from "@phosphor-icons/react"
@@ -20,6 +20,7 @@ import {
   applyAxisLock,
   lockedAxisFromDelta,
 } from "./selectionHandles"
+import { useCanvasViewport } from "./CanvasViewportContext"
 
 interface CanvasNodeProps {
   nodeId: string
@@ -36,18 +37,39 @@ interface DragItem {
   parentRect: Rect
 }
 
+function buildDragItems(doc: ReturnType<typeof useEditorStore.getState>["document"], ids: string[]): DragItem[] {
+  return ids
+    .map((id) => {
+      const n = doc.nodes[id]
+      const c = doc.canvas[id]
+      if (!n?.parentId || !c) return null
+      return {
+        id,
+        origRect: { ...c.rect },
+        origAbs: absoluteRect(doc, id),
+        parentRect: absoluteRect(doc, n.parentId),
+      }
+    })
+    .filter((item): item is DragItem => item !== null)
+}
+
 function CanvasNodeBase({
   nodeId,
-  zoom = 1,
+  zoom: zoomProp = 1,
   snapToComponents = true,
   showPixelGrid = false,
 }: CanvasNodeProps) {
+  const viewport = useCanvasViewport()
+  const zoom = viewport.zoom || zoomProp
+
   const document = useEditorStore((s) => s.document)
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const selectNode = useEditorStore((s) => s.selectNode)
+  const selectNodes = useEditorStore((s) => s.selectNodes)
   const toggleNodeSelection = useEditorStore((s) => s.toggleNodeSelection)
   const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
   const sealHistoryBatch = useEditorStore((s) => s.sealHistoryBatch)
+  const duplicateNodesInPlace = useEditorStore((s) => s.duplicateNodesInPlace)
   const setIndicators = useSnapStore((s) => s.setIndicators)
   const clearGuides = useSnapStore((s) => s.clearGuides)
 
@@ -58,11 +80,17 @@ function CanvasNodeBase({
   const dragRef = useRef<{
     startX: number
     startY: number
+    startPanX: number
+    startPanY: number
     items: DragItem[]
     targets: ReturnType<typeof buildSnapTargets>
     dirty: boolean
     session: SnapSession
     groupOrigAbs: Rect
+    altAtDown: boolean
+    wasInSelection: boolean
+    duplicated: boolean
+    sourceIds: string[]
   } | null>(null)
 
   const handlePointerDown = useCallback(
@@ -72,7 +100,6 @@ function CanvasNodeBase({
       const currentNode = doc.nodes[nodeId]
       if (!currentNode || !doc.canvas[nodeId]) return
 
-      // root 本体留给框选
       if (!currentNode.parentId) {
         if (e.altKey) {
           e.stopPropagation()
@@ -84,87 +111,106 @@ function CanvasNodeBase({
 
       e.stopPropagation()
       e.preventDefault()
-      if (e.altKey) {
-        toggleNodeSelection(nodeId)
-        return
+
+      const altAtDown = e.altKey
+      const wasInSelection = state.selectedIds.includes(nodeId)
+
+      // 普通点击：单选；Alt：加入选区（纯点击 up 时再决定 toggle off）
+      if (!altAtDown) {
+        if (!wasInSelection) selectNode(nodeId)
+      } else if (!wasInSelection) {
+        selectNodes([...state.selectedIds, nodeId])
       }
 
-      let activeIds = state.selectedIds
-      if (!activeIds.includes(nodeId)) {
-        selectNode(nodeId)
-        activeIds = [nodeId]
-      }
-
-      const ids = topLevelSelectedIds(doc, activeIds)
+      const activeIds = useEditorStore.getState().selectedIds
+      const ids = topLevelSelectedIds(
+        useEditorStore.getState().document,
+        activeIds,
+      ).filter((id) => useEditorStore.getState().document.nodes[id]?.parentId != null)
       if (ids.length === 0) return
-      const movingSet = new Set(ids)
 
-      const items: DragItem[] = ids
-        .map((id) => {
-          const n = doc.nodes[id]
-          const c = doc.canvas[id]
-          if (!n || !c) return null
-          const parentRect = n.parentId
-            ? absoluteRect(doc, n.parentId)
-            : { ...c.rect }
-          return {
-            id,
-            origRect: { ...c.rect },
-            origAbs: absoluteRect(doc, id),
-            parentRect,
-          }
-        })
-        .filter((item): item is DragItem => item !== null)
-
+      const liveDoc = useEditorStore.getState().document
+      const items = buildDragItems(liveDoc, ids)
       if (items.length === 0) return
+      const movingSet = new Set(ids)
 
       const siblingRects: { id: string; bounds: Rect }[] = []
       if (currentNode.parentId) {
-        for (const cid of doc.nodes[currentNode.parentId].childrenIds) {
+        for (const cid of liveDoc.nodes[currentNode.parentId].childrenIds) {
           if (movingSet.has(cid)) continue
-          siblingRects.push({ id: cid, bounds: absoluteRect(doc, cid) })
+          siblingRects.push({ id: cid, bounds: absoluteRect(liveDoc, cid) })
         }
       }
 
-      const parentRect = absoluteRect(doc, currentNode.parentId)
-      const canvasRect = absoluteRect(doc, doc.rootId)
+      const parentRect = absoluteRect(liveDoc, currentNode.parentId)
+      const canvasRect = absoluteRect(liveDoc, liveDoc.rootId)
       const targets = buildSnapTargets({
         siblingRects,
         parentRect,
         parentId: currentNode.parentId,
         canvasRect,
-        canvasId: doc.rootId,
+        canvasId: liveDoc.rootId,
       })
       const groupOrigAbs =
         unionRects(items.map((i) => i.origAbs)) ?? items[0].origAbs
 
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+      const startPan = viewport.edgeScroll.begin()
 
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
+        startPanX: startPan.panX,
+        startPanY: startPan.panY,
         items,
         targets,
         dirty: false,
         session: createSnapSession(),
         groupOrigAbs,
+        altAtDown,
+        wasInSelection,
+        duplicated: false,
+        sourceIds: ids,
       }
 
       const handleMove = (ev: PointerEvent) => {
         const drag = dragRef.current
         if (!drag) return
-        const rawDx = (ev.clientX - drag.startX) / zoom
-        const rawDy = (ev.clientY - drag.startY) / zoom
-        if (!drag.dirty && Math.abs(rawDx) < 0.5 && Math.abs(rawDy) < 0.5) return
 
-        // Shift：锁轴
-        const locked = lockedAxisFromDelta(rawDx, rawDy, ev.shiftKey)
-        const lockedDelta = applyAxisLock(rawDx, rawDy, locked)
+        viewport.edgeScroll.tick(ev.clientX, ev.clientY)
+        const { dx: rawDx0, dy: rawDy0 } = viewport.clientDeltaToDoc(
+          ev.clientX,
+          ev.clientY,
+          drag.startX,
+          drag.startY,
+          drag.startPanX,
+          drag.startPanY,
+        )
+        if (!drag.dirty && Math.abs(rawDx0) < 0.5 && Math.abs(rawDy0) < 0.5) return
+
+        // Alt-拖：越过阈值后复制并改拖副本
+        if (drag.altAtDown && !drag.duplicated) {
+          const newIds = duplicateNodesInPlace(drag.sourceIds)
+          if (newIds.length > 0) {
+            const fresh = useEditorStore.getState().document
+            drag.items = buildDragItems(fresh, newIds)
+            drag.groupOrigAbs =
+              unionRects(drag.items.map((i) => i.origAbs)) ??
+              drag.items[0].origAbs
+            drag.duplicated = true
+          }
+        }
+
+        const locked = lockedAxisFromDelta(rawDx0, rawDy0, ev.shiftKey)
+        const lockedDelta = applyAxisLock(rawDx0, rawDy0, locked)
         let dx = lockedDelta.dx
         let dy = lockedDelta.dy
 
-        const snapOn = snapToComponents && !ev.altKey
-        if (snapOn) {
+        // 非 Alt-拖 时 Alt 关闭吸附；Alt-拖复制过程中保持吸附
+        const allowSnap =
+          snapToComponents && (!ev.altKey || drag.altAtDown || drag.duplicated)
+
+        if (allowSnap) {
           const result = drag.session.resolveTranslate({
             initialSelectionBounds: drag.groupOrigAbs,
             dragDelta: { x: dx, y: dy },
@@ -172,9 +218,8 @@ function CanvasNodeBase({
             zoom,
             lockedAxis: locked,
           })
-          dx = dx + result.nudgeX
-          dy = dy + result.nudgeY
-          // 锁轴后再清一次被锁方向的 nudge（防止吸附拉偏）
+          dx += result.nudgeX
+          dy += result.nudgeY
           if (locked === "x") dx = 0
           if (locked === "y") dy = 0
           setIndicators(result.indicators)
@@ -200,10 +245,17 @@ function CanvasNodeBase({
       const handleUp = () => {
         const drag = dragRef.current
         dragRef.current = null
+        viewport.edgeScroll.end()
         drag?.session.reset()
         clearGuides()
         window.removeEventListener("pointermove", handleMove)
         window.removeEventListener("pointerup", handleUp)
+
+        // Alt 纯点击：若按下前已在选区 → 取消选中
+        if (drag && !drag.dirty && drag.altAtDown && drag.wasInSelection) {
+          toggleNodeSelection(nodeId)
+        }
+
         if (drag?.dirty) sealHistoryBatch()
       }
 
@@ -213,13 +265,16 @@ function CanvasNodeBase({
     [
       nodeId,
       selectNode,
+      selectNodes,
       toggleNodeSelection,
       updateCanvasRects,
       sealHistoryBatch,
+      duplicateNodesInPlace,
       setIndicators,
       clearGuides,
       zoom,
       snapToComponents,
+      viewport,
     ],
   )
 
@@ -239,7 +294,6 @@ function CanvasNodeBase({
         "canvas-node absolute select-none border bg-secondary/70 transition-colors",
         !node.parentId && showPixelGrid && "canvas-grid-bg",
         shapeClass,
-        // 选中时淡化边框（选区框由 SelectionOverlay 画）
         isSelected ? "border-ring/40" : "border-border",
       )}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}

@@ -62,11 +62,13 @@ React Flow v12 + `d3-hierarchy` 的 `d3.tree().nodeSize([104, 284])`。从扁平
 
 ### Canvas 模式
 手写嵌套绝对定位 div。`CanvasNode` 只渲染内容与拖移；**选区是一等公民**（`SelectionOverlay`：组 AABB + 8 手柄 + 尺寸标签）。
-- **位移**：多选顶层整组同移；**Shift 锁轴**；方向键 1px / Shift+方向键 10px。
-- **缩放**：⌘/Ctrl+滚轮以**光标为不动点**（同步修正 pan）。
-- **历史**：store 级 history batch——live 更新自动记下 baseline，`sealHistoryBatch` 压成一条 undo。
-- **框选**：空白处拖拽 marquee（Shift 追加）；`Space`/中键/右键拖 = pan。root 本体不拖移。
-- **智能吸附**（`canvas/snap/`，移植 tldraw `BoundsSnaps`）：点对齐 + gap 等距；阈值 `8/zoom`；`SnapOverlay` 粉线。Alt 关闭。
+- **位移**：多选顶层整组同移；**Shift 锁轴**；**Alt-拖复制**；拖近视口边缘 **auto pan**（`CanvasViewportContext`）。
+- **Resize**：**Shift 锁比例**、**Alt 中心缩放**。
+- **布局命令**：`alignNodes` / `distributeNodes`（工具条，≥2/≥3 选中时显示）。
+- **缩放**：⌘/Ctrl+滚轮以**光标为不动点**。
+- **历史**：history batch（live + seal）；方向键微移 debounce seal。
+- **框选**：空白拖 marquee（Shift 追加）；Space/中键/右键 pan。
+- **吸附**（`canvas/snap/`，tldraw BoundsSnaps）：点对齐 + gap 等距；`8/zoom`。
 
 ## 设计系统
 
