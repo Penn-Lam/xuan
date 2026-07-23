@@ -6,6 +6,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useLayoutEffect,
   useMemo,
   useRef,
   type ReactNode,
@@ -69,9 +70,11 @@ export function CanvasViewportProvider({
   children,
 }: ViewportState & { children: ReactNode }) {
   const panRef = useRef(pan)
-  panRef.current = pan
   const zoomRef = useRef(zoom)
-  zoomRef.current = zoom
+  useLayoutEffect(() => {
+    panRef.current = pan
+    zoomRef.current = zoom
+  }, [pan, zoom])
   const enabledRef = useRef(false)
   const rafRef = useRef(0)
   const lastClientRef = useRef({ x: 0, y: 0 })

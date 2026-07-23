@@ -3,7 +3,7 @@
 //  页面 frame + pan/zoom + 框选 + 视图开关 + 吸附辅助线 + 绘制工具
 //  pan：中键 / Space+拖；框选：select 工具在空白处拖
 // ============================================================
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
   MagnifyingGlassPlus,
   MagnifyingGlassMinus,
@@ -64,7 +64,7 @@ function normalizeRect(x1: number, y1: number, x2: number, y2: number): Rect {
   }
 }
 
-export function CanvasEditor() {
+function useCanvasEditorState() {
   const { t } = useI18n()
   const document = useEditorStore((s) => s.document)
   const selectNode = useEditorStore((s) => s.selectNode)
@@ -83,9 +83,13 @@ export function CanvasEditor() {
   // pan/zoom 状态
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  /** 当前 pan 的 ref，供捕获阶段 pan 手势读取最新值 */
+  /** 当前 pan/zoom 的 ref，供原生事件读取最新值 */
   const panValueRef = useRef(pan)
-  panValueRef.current = pan
+  const zoomValueRef = useRef(zoom)
+  useLayoutEffect(() => {
+    panValueRef.current = pan
+    zoomValueRef.current = zoom
+  }, [pan, zoom])
   const panGestureRef = useRef<{
     startX: number
     startY: number
@@ -132,23 +136,30 @@ export function CanvasEditor() {
         const cx = rect.width / 2
         const cy = rect.height / 2
         const delta = -e.deltaY * 0.001
-        setZoom((z0) => {
-          const z1 = Math.min(4, Math.max(0.1, z0 + delta))
-          if (z1 === z0) return z0
-          setPan((p0) => ({
+        const z0 = zoomValueRef.current
+        const z1 = Math.min(4, Math.max(0.1, z0 + delta))
+        if (z1 !== z0) {
+          const p0 = panValueRef.current
+          const nextPan = {
             x: sx - cx - (z1 * (sx - cx - p0.x)) / z0,
             y: sy - cy - (z1 * (sy - cy - p0.y)) / z0,
-          }))
-          return z1
-        })
+          }
+          zoomValueRef.current = z1
+          panValueRef.current = nextPan
+          setZoom(z1)
+          setPan(nextPan)
+        }
         return
       }
 
       // 平移视野（触控板双指 / 鼠标滚轮）
-      setPan((p0) => ({
+      const p0 = panValueRef.current
+      const nextPan = {
         x: p0.x - e.deltaX,
         y: p0.y - e.deltaY,
-      }))
+      }
+      panValueRef.current = nextPan
+      setPan(nextPan)
     }
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
@@ -186,10 +197,12 @@ export function CanvasEditor() {
       const g = panGestureRef.current
       if (!g) return
       e.preventDefault()
-      setPan({
+      const nextPan = {
         x: g.origX + (e.clientX - g.startX),
         y: g.origY + (e.clientY - g.startY),
-      })
+      }
+      panValueRef.current = nextPan
+      setPan(nextPan)
     }
 
     const onPointerUpCapture = () => {
@@ -493,6 +506,74 @@ export function CanvasEditor() {
   const operableCount = topLevelSelectedIds(document, selectedIds).filter(
     (id) => document.nodes[id]?.parentId != null,
   ).length
+
+  return {
+    t,
+    rootId,
+    rootCanvas,
+    viewport,
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    tool,
+    setTool,
+    snapToComponents,
+    setSnapToComponents,
+    showPixelGrid,
+    setShowPixelGrid,
+    snapToPixelGrid,
+    setSnapToPixelGrid,
+    containerRef,
+    frameRef,
+    marquee,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleBackgroundClick,
+    handleDrawPointerDown,
+    handleDrawPointerUp,
+    cursor,
+    operableCount,
+    selectedIds,
+    alignNodes,
+    distributeNodes,
+  }
+}
+
+export function CanvasEditor() {
+  const {
+    t,
+    rootId,
+    rootCanvas,
+    viewport,
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    tool,
+    setTool,
+    snapToComponents,
+    setSnapToComponents,
+    showPixelGrid,
+    setShowPixelGrid,
+    snapToPixelGrid,
+    setSnapToPixelGrid,
+    containerRef,
+    frameRef,
+    marquee,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleBackgroundClick,
+    handleDrawPointerDown,
+    handleDrawPointerUp,
+    cursor,
+    operableCount,
+    selectedIds,
+    alignNodes,
+    distributeNodes,
+  } = useCanvasEditorState()
 
   return (
     <CanvasViewportProvider
