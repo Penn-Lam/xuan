@@ -2,7 +2,7 @@
 //  CanvasNode —— 嵌套绝对定位节点
 //  递归渲染子节点；选中时显示 8 方向 resize 手柄
 //  多选整组同移；拖中 live 写 rect，松手一条 undo
-//  root 本体不拖移（留给框选）；resize 手柄仍可改页面尺寸
+//  root 本体不拖移（留给框选）；智能吸附走 SnapSession
 // ============================================================
 import { memo, useCallback, useRef } from "react"
 import { Cube } from "@phosphor-icons/react"
@@ -10,7 +10,12 @@ import { useEditorStore } from "@/store/useEditorStore"
 import { MIN_SIZE, absoluteRect, topLevelSelectedIds } from "@/lib/geometry"
 import { cn } from "@/lib/utils"
 import type { Rect } from "@/types/document"
-import { computeSnap, snapToGrid, useSnapStore } from "./useCanvasSnap"
+import {
+  createSnapSession,
+  unionRects,
+  useSnapStore,
+  type SnapSession,
+} from "./useCanvasSnap"
 
 type ResizeDir = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
 
@@ -18,7 +23,6 @@ const HANDLES: ResizeDir[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"]
 
 interface CanvasNodeProps {
   nodeId: string
-  /** 当前 zoom（网格吸附用） */
   zoom?: number
   snapToComponents?: boolean
   snapToPixelGrid?: boolean
@@ -28,6 +32,8 @@ interface CanvasNodeProps {
 interface DragItem {
   id: string
   origRect: Rect
+  /** 拖拽开始时该节点的绝对 rect */
+  origAbs: Rect
   parentRect: Rect
 }
 
@@ -44,24 +50,26 @@ function CanvasNodeBase({
   const toggleNodeSelection = useEditorStore((s) => s.toggleNodeSelection)
   const updateCanvasRects = useEditorStore((s) => s.updateCanvasRects)
   const sealHistoryBatch = useEditorStore((s) => s.sealHistoryBatch)
-  const setGuides = useSnapStore((s) => s.setGuides)
+  const setFeedback = useSnapStore((s) => s.setFeedback)
   const clearGuides = useSnapStore((s) => s.clearGuides)
 
   const node = document.nodes[nodeId]
   const canvas = document.canvas[nodeId]
   const isSelected = selectedIds.includes(nodeId)
 
-  // 拖拽起点引用（松手 sealHistoryBatch → 一条 undo）
   const dragRef = useRef<{
     startX: number
     startY: number
     mode: "move" | ResizeDir
-    /** 参与本次位移的节点（move 可为多选顶层；resize 仅当前节点） */
     items: DragItem[]
-    /** 吸附参照：主拖拽节点的兄弟绝对 rect */
-    siblingRects: Rect[]
+    targetRects: Rect[]
+    parentRect: Rect
+    canvasRect: Rect
     primaryId: string
     dirty: boolean
+    session: SnapSession
+    /** 多选时组外接矩形（相对 orig） */
+    groupOrigAbs: Rect
   } | null>(null)
 
   const handlePointerDown = useCallback(
@@ -71,7 +79,6 @@ function CanvasNodeBase({
       const currentNode = doc.nodes[nodeId]
       if (!currentNode || !doc.canvas[nodeId]) return
 
-      // root 本体移动交给上层框选；resize 手柄仍可改页面尺寸
       if (!currentNode.parentId && mode === "move") {
         if (e.altKey) {
           e.stopPropagation()
@@ -88,14 +95,12 @@ function CanvasNodeBase({
         return
       }
 
-      // 选择策略：已在选区则保持多选；否则单选
       let activeIds = state.selectedIds
       if (!activeIds.includes(nodeId)) {
         selectNode(nodeId)
         activeIds = [nodeId]
       }
 
-      // move：整组顶层选中项（祖先已选的子节点不重复位移）；resize：仅当前节点
       const ids =
         mode === "move" ? topLevelSelectedIds(doc, activeIds) : [nodeId]
       if (ids.length === 0) return
@@ -109,9 +114,11 @@ function CanvasNodeBase({
           const parentRect = n.parentId
             ? absoluteRect(doc, n.parentId)
             : { ...c.rect }
+          const origAbs = absoluteRect(doc, id)
           return {
             id,
             origRect: { ...c.rect },
+            origAbs,
             parentRect,
           }
         })
@@ -119,14 +126,20 @@ function CanvasNodeBase({
 
       if (items.length === 0) return
 
-      // 吸附目标：主节点父级下的兄弟，排除本次一起移动的节点
-      const siblingRects: Rect[] = []
+      const targetRects: Rect[] = []
       if (currentNode.parentId) {
         for (const cid of doc.nodes[currentNode.parentId].childrenIds) {
           if (movingSet.has(cid)) continue
-          siblingRects.push(absoluteRect(doc, cid))
+          targetRects.push(absoluteRect(doc, cid))
         }
       }
+
+      const parentRect = currentNode.parentId
+        ? absoluteRect(doc, currentNode.parentId)
+        : absoluteRect(doc, doc.rootId)
+      const canvasRect = absoluteRect(doc, doc.rootId)
+      const groupOrigAbs =
+        unionRects(items.map((i) => i.origAbs)) ?? items[0].origAbs
 
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
 
@@ -135,9 +148,13 @@ function CanvasNodeBase({
         startY: e.clientY,
         mode,
         items,
-        siblingRects,
+        targetRects,
+        parentRect,
+        canvasRect,
         primaryId: nodeId,
         dirty: false,
+        session: createSnapSession(),
+        groupOrigAbs,
       }
 
       const handleMove = (ev: PointerEvent) => {
@@ -145,48 +162,37 @@ function CanvasNodeBase({
         if (!drag) return
         const rawDx = (ev.clientX - drag.startX) / zoom
         const rawDy = (ev.clientY - drag.startY) / zoom
-        // 亚像素抖动忽略，避免空 commit
         if (!drag.dirty && Math.abs(rawDx) < 0.5 && Math.abs(rawDy) < 0.5) return
 
-        if (drag.mode === "move") {
-          const primary = drag.items.find((item) => item.id === drag.primaryId)
-          if (!primary) return
+        const snapOn = snapToComponents && !ev.altKey
 
+        if (drag.mode === "move") {
           let dx = rawDx
           let dy = rawDy
-          let x = primary.origRect.x + dx
-          let y = primary.origRect.y + dy
 
-          // 网格吸附（Alt 关闭）——以主节点为准
-          if (snapToPixelGrid && !ev.altKey) {
-            x = snapToGrid(x, zoom)
-            y = snapToGrid(y, zoom)
-            dx = x - primary.origRect.x
-            dy = y - primary.origRect.y
+          const rawGroup: Rect = {
+            x: drag.groupOrigAbs.x + dx,
+            y: drag.groupOrigAbs.y + dy,
+            w: drag.groupOrigAbs.w,
+            h: drag.groupOrigAbs.h,
           }
 
-          // 智能吸附（Alt 关闭）——以主节点为准，delta 广播给整组
-          if (
-            snapToComponents &&
-            !ev.altKey &&
-            useEditorStore.getState().document.nodes[drag.primaryId]?.parentId
-          ) {
-            const absDragRect = {
-              x: primary.parentRect.x + x,
-              y: primary.parentRect.y + y,
-              w: primary.origRect.w,
-              h: primary.origRect.h,
-            }
-            const { adjustedRect, guides } = computeSnap(
-              absDragRect,
-              drag.siblingRects,
-              primary.parentRect,
-            )
-            x = adjustedRect.x - primary.parentRect.x
-            y = adjustedRect.y - primary.parentRect.y
-            dx = x - primary.origRect.x
-            dy = y - primary.origRect.y
-            setGuides(guides)
+          if (snapOn) {
+            const result = drag.session.resolve({
+              rawRect: rawGroup,
+              targets: drag.targetRects,
+              parentRect: drag.parentRect,
+              canvasRect: drag.canvasRect,
+              zoom,
+              mode: "move",
+              enableLayoutGrid: true,
+              enablePixelGrid: snapToPixelGrid,
+            })
+            dx += result.deltaX
+            dy += result.deltaY
+            setFeedback(result.guides, result.measurements)
+          } else {
+            clearGuides()
           }
 
           drag.dirty = true
@@ -205,7 +211,7 @@ function CanvasNodeBase({
           return
         }
 
-        // resize：仅主节点
+        // resize
         const primary = drag.items.find((item) => item.id === drag.primaryId)
         if (!primary) return
         let { x, y, w, h } = primary.origRect
@@ -219,6 +225,44 @@ function CanvasNodeBase({
           h = Math.max(MIN_SIZE, primary.origRect.h - rawDy)
           y = primary.origRect.y + (primary.origRect.h - h)
         }
+
+        // 相对 → 绝对 raw
+        let absRect: Rect = {
+          x: primary.parentRect.x + x,
+          y: primary.parentRect.y + y,
+          w,
+          h,
+        }
+
+        if (snapOn) {
+          const edges = {
+            n: drag.mode.includes("n"),
+            s: drag.mode.includes("s"),
+            e: drag.mode.includes("e"),
+            w: drag.mode.includes("w"),
+          }
+          const result = drag.session.resolve({
+            rawRect: absRect,
+            targets: drag.targetRects,
+            parentRect: drag.parentRect,
+            canvasRect: drag.canvasRect,
+            zoom,
+            mode: "resize",
+            resizeEdges: edges,
+            enableLayoutGrid: false,
+            enablePixelGrid: false,
+          })
+          // resize 候选统一走 sizeDelta / adjustedRect
+          absRect = result.adjustedRect
+          x = absRect.x - primary.parentRect.x
+          y = absRect.y - primary.parentRect.y
+          w = Math.max(MIN_SIZE, absRect.w)
+          h = Math.max(MIN_SIZE, absRect.h)
+          setFeedback(result.guides, result.measurements)
+        } else {
+          clearGuides()
+        }
+
         drag.dirty = true
         updateCanvasRects([{ id: drag.primaryId, rect: { x, y, w, h } }], {
           history: false,
@@ -228,10 +272,10 @@ function CanvasNodeBase({
       const handleUp = () => {
         const drag = dragRef.current
         dragRef.current = null
+        drag?.session.reset()
         clearGuides()
         window.removeEventListener("pointermove", handleMove)
         window.removeEventListener("pointerup", handleUp)
-        // 整段拖拽 = 一条 undo
         if (drag?.dirty) sealHistoryBatch()
       }
 
@@ -244,7 +288,7 @@ function CanvasNodeBase({
       toggleNodeSelection,
       updateCanvasRects,
       sealHistoryBatch,
-      setGuides,
+      setFeedback,
       clearGuides,
       zoom,
       snapToComponents,
@@ -274,7 +318,6 @@ function CanvasNodeBase({
       data-canvas-root={!node.parentId ? "true" : undefined}
       onPointerDown={(e) => handlePointerDown(e, "move")}
     >
-      {/* 节点标签 */}
       <div className="pointer-events-none absolute left-1.5 top-1 flex items-center gap-1">
         {node.component && (
           <Cube className="text-primary" width={12} height={12} />
@@ -284,7 +327,6 @@ function CanvasNodeBase({
         </span>
       </div>
 
-      {/* 递归渲染子节点 */}
       {node.childrenIds.length > 0 && (
         <div className="relative h-full w-full overflow-visible">
           {node.childrenIds.map((cid) => (
@@ -299,7 +341,6 @@ function CanvasNodeBase({
         </div>
       )}
 
-      {/* 选中时显示 resize 手柄 */}
       {isSelected &&
         HANDLES.map((dir) => (
           <div
@@ -316,7 +357,6 @@ function CanvasNodeBase({
   )
 }
 
-/** resize 手柄位置 class */
 function handlePositionClass(dir: ResizeDir): string {
   const map: Record<ResizeDir, string> = {
     nw: "left-0 top-0 -translate-x-1/2 -translate-y-1/2",
@@ -331,7 +371,6 @@ function handlePositionClass(dir: ResizeDir): string {
   return map[dir]
 }
 
-/** resize 手柄鼠标样式 */
 function handleCursor(dir: ResizeDir): string {
   const map: Record<ResizeDir, string> = {
     nw: "nwse-resize",

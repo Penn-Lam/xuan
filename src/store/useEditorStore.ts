@@ -5,7 +5,7 @@
 // ============================================================
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { CanvasData, Rect, XuanDocument } from "@/types/document"
+import type { CanvasData, FlatNode, MindmapData, Rect, XuanDocument } from "@/types/document"
 import { genNodeId, genPageId } from "@/lib/id"
 import { clampRect, collectDescendants, isDescendant } from "@/lib/geometry"
 import { createBlankPage, createDefaultDocument } from "@/model/factories"
@@ -52,6 +52,7 @@ interface EditorState {
   createPage: (name?: string) => void
   switchPage: (id: string) => void
   deletePage: (id: string) => void
+  duplicatePage: (id: string) => void
   setDocumentName: (name: string) => void
 
   /* ---- 节点增删改（可撤销）---- */
@@ -281,6 +282,70 @@ export const useEditorStore = create<EditorState>()(
           set({
             pages,
             activePageId: nextActive,
+            document: doc,
+            selectedId: doc.rootId,
+            selectedIds: [doc.rootId],
+            history: new History(),
+          })
+        },
+
+        duplicatePage: (id) => {
+          discardHistoryBatch()
+          const state = get()
+          const source = state.pages[id]
+          if (!source) return
+
+          // 深拷贝并给所有节点重新生成 id（保持树结构与几何）
+          const idMap = new Map<string, string>()
+          const remap = (oldId: string): string => {
+            let next = idMap.get(oldId)
+            if (!next) {
+              next = genNodeId()
+              idMap.set(oldId, next)
+            }
+            return next
+          }
+
+          const newNodes: Record<string, FlatNode> = {}
+          const newCanvas: Record<string, CanvasData> = {}
+          const newMindmap: Record<string, MindmapData> = {}
+          let newRootId = source.rootId
+
+          for (const [oldId, node] of Object.entries(source.nodes)) {
+            const nid = remap(oldId)
+            if (node.parentId === null) newRootId = nid
+            newNodes[nid] = {
+              ...node,
+              id: nid,
+              parentId: node.parentId === null ? null : remap(node.parentId),
+              childrenIds: node.childrenIds.map(remap),
+            }
+          }
+          for (const [oldId, canvas] of Object.entries(source.canvas)) {
+            newCanvas[remap(oldId)] = { ...canvas }
+          }
+          for (const [oldId, mm] of Object.entries(source.mindmap)) {
+            newMindmap[remap(oldId)] = { ...mm }
+          }
+
+          const doc: XuanDocument = {
+            version: "2.0",
+            meta: {
+              ...source.meta,
+              name: `${source.meta.name} Duplicate`,
+            },
+            rootId: newRootId,
+            nodes: newNodes,
+            canvas: newCanvas,
+            mindmap: newMindmap,
+          }
+
+          const newPageId = genPageId()
+          const pages = { ...state.pages, [newPageId]: doc }
+          discardHistoryBatch()
+          set({
+            pages,
+            activePageId: newPageId,
             document: doc,
             selectedId: doc.rootId,
             selectedIds: [doc.rootId],

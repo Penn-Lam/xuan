@@ -18,7 +18,7 @@ import { useEditorStore } from "@/store/useEditorStore"
 import { hitTestMarquee, topLevelSelectedIds } from "@/lib/geometry"
 import type { Rect } from "@/types/document"
 import { CanvasNode } from "./CanvasNode"
-import { useSnapStore, type SnapGuide } from "./useCanvasSnap"
+import { SnapOverlay } from "./SnapOverlay"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -67,7 +67,6 @@ export function CanvasEditor() {
   const rootId = document.rootId
   const rootCanvas = document.canvas[rootId]
   const viewport = document.meta.viewport
-  const guides = useSnapStore((s) => s.guides)
 
   // pan/zoom 状态
   const [zoom, setZoom] = useState(1)
@@ -515,10 +514,8 @@ export function CanvasEditor() {
             />
           )}
 
-          {/* 吸附辅助线层 */}
-          {guides.map((guide) => (
-            <SnapGuideLine key={`${guide.orientation}-${guide.position}`} guide={guide} viewport={viewport} />
-          ))}
+          {/* 智能吸附引导线 + 间距/尺寸标注 */}
+          <SnapOverlay zoom={zoom} />
 
         </div>
       </div>
@@ -591,26 +588,3 @@ function ToolButton({
   )
 }
 
-/** 吸附辅助线（红色） */
-function SnapGuideLine({
-  guide,
-  viewport,
-}: {
-  guide: SnapGuide
-  viewport: { width: number; height: number }
-}) {
-  if (guide.orientation === "v") {
-    return (
-      <div
-        className="pointer-events-none absolute top-0 z-50 bg-destructive"
-        style={{ left: guide.position, width: 1, height: viewport.height }}
-      />
-    )
-  }
-  return (
-    <div
-      className="pointer-events-none absolute left-0 z-50 bg-destructive"
-      style={{ top: guide.position, height: 1, width: viewport.width }}
-    />
-  )
-}

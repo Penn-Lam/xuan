@@ -4,7 +4,7 @@
 //  hover 展开子菜单「复制 / 删除」
 //  base-ui Submenu 自带安全三角区 + delay/closeDelay 防误触
 // ============================================================
-import { Plus, File, Trash } from "@phosphor-icons/react"
+import { Plus, File, Copy, Trash } from "@phosphor-icons/react"
 import { useEditorStore } from "@/store/useEditorStore"
 import { buttonVariants } from "@/components/ui/button-variants"
 import {
@@ -27,6 +27,7 @@ export function PageMenu() {
   const switchPage = useEditorStore((s) => s.switchPage)
   const createPage = useEditorStore((s) => s.createPage)
   const deletePage = useEditorStore((s) => s.deletePage)
+  const duplicatePage = useEditorStore((s) => s.duplicatePage)
 
   const pageList = Object.entries(pages)
 
@@ -49,6 +50,10 @@ export function PageMenu() {
                 <span className="truncate">{doc.meta.name}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => duplicatePage(id)}>
+                  <Copy />
+                  {t("Duplicate")}
+                </DropdownMenuItem>
                 {pageList.length > 1 && (
                   <DropdownMenuItem
                     variant="destructive"

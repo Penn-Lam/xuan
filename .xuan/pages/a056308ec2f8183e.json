@@ -9,7 +9,7 @@
     }
   },
   "tree": {
-    "id": "node_gcdxqskeh5",
+    "id": "node_8wtf87f8ko",
     "name": "课程浏览页",
     "role": "page",
     "rect": {
@@ -23,7 +23,7 @@
     "content": null,
     "children": [
       {
-        "id": "node_1v9w8wxp3t",
+        "id": "node_1ymqty79q6",
         "name": "Dashboard Sidebar",
         "role": "navigation",
         "rect": {
@@ -42,7 +42,7 @@
         "content": null,
         "children": [
           {
-            "id": "node_z4qq2frvtp",
+            "id": "node_l67fw8c2oy",
             "name": "Brand Header",
             "role": "branding",
             "rect": {
@@ -59,7 +59,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_p8l0a6nnae",
+                "id": "node_jy8xpj521u",
                 "name": "Brand Name",
                 "role": "heading",
                 "rect": {
@@ -76,7 +76,7 @@
                 "children": []
               },
               {
-                "id": "node_z90oq1s9p4",
+                "id": "node_cocwet9ys0",
                 "name": "Brand Subtitle",
                 "role": "caption",
                 "rect": {
@@ -95,7 +95,7 @@
             ]
           },
           {
-            "id": "node_vmf62cuuet",
+            "id": "node_g8m608g2af",
             "name": "Primary Navigation",
             "role": "navigation",
             "rect": {
@@ -112,7 +112,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_bbgidddjwl",
+                "id": "node_cv32n42ha5",
                 "name": "Benefits Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -133,7 +133,7 @@
                 "children": []
               },
               {
-                "id": "node_d1wgjq1zv5",
+                "id": "node_xbabffcvrm",
                 "name": "Courses Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -156,7 +156,7 @@
             ]
           },
           {
-            "id": "node_kd1jhm8nt8",
+            "id": "node_2azxy5ymap",
             "name": "Settings Navigation",
             "role": "navigation",
             "rect": {
@@ -175,7 +175,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_ntrtqmkdya",
+                "id": "node_qof4o0zxjf",
                 "name": "Settings Label",
                 "role": "label",
                 "rect": {
@@ -192,7 +192,7 @@
                 "children": []
               },
               {
-                "id": "node_k81edmnmys",
+                "id": "node_hkekmxoeqd",
                 "name": "Profile Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -212,7 +212,7 @@
                 "children": []
               },
               {
-                "id": "node_gcy3k9dbq8",
+                "id": "node_qcl6gxhxcf",
                 "name": "Credits Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -232,7 +232,7 @@
                 "children": []
               },
               {
-                "id": "node_weguktlb1y",
+                "id": "node_hbh9qzovki",
                 "name": "Security Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -252,7 +252,7 @@
                 "children": []
               },
               {
-                "id": "node_lq1z72pfws",
+                "id": "node_0asm1b3vuz",
                 "name": "Notifications Tab",
                 "role": "navigation-item",
                 "rect": {
@@ -274,7 +274,7 @@
             ]
           },
           {
-            "id": "node_35f167tbum",
+            "id": "node_rcm4pbdfrj",
             "name": "User Profile",
             "role": "account",
             "rect": {
@@ -291,7 +291,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_oavkr85l4e",
+                "id": "node_94toauwve7",
                 "name": "User Name",
                 "role": "label",
                 "rect": {
@@ -308,7 +308,7 @@
                 "children": []
               },
               {
-                "id": "node_czgkqo0a4x",
+                "id": "node_tt2zra4pnv",
                 "name": "User Email",
                 "role": "caption",
                 "rect": {
@@ -329,7 +329,7 @@
         ]
       },
       {
-        "id": "node_9hb0qcw4ok",
+        "id": "node_3kc36ypa92",
         "name": "Dashboard Header",
         "role": "header",
         "rect": {
@@ -343,7 +343,7 @@
         "content": null,
         "children": [
           {
-            "id": "node_pzxx0jawqc",
+            "id": "node_cbv6no2061",
             "name": "Sidebar Trigger",
             "role": "control",
             "rect": {
@@ -361,7 +361,7 @@
             "children": []
           },
           {
-            "id": "node_towg6vyhr2",
+            "id": "node_5hbllpqtvc",
             "name": "Courses Breadcrumb",
             "role": "breadcrumb",
             "rect": {
@@ -378,7 +378,7 @@
             "children": []
           },
           {
-            "id": "node_wenekdo5i4",
+            "id": "node_9ui951czk5",
             "name": "Theme Switcher",
             "role": "control",
             "rect": {
@@ -398,7 +398,7 @@
             "children": []
           },
           {
-            "id": "node_j8kejwjs0b",
+            "id": "node_drxdk8qi6v",
             "name": "Locale Switcher",
             "role": "control",
             "rect": {
@@ -420,7 +420,7 @@
         ]
       },
       {
-        "id": "node_vdkuvx1ipr",
+        "id": "node_vcbez0smx6",
         "name": "课程浏览主内容",
         "role": "main",
         "rect": {
@@ -434,7 +434,7 @@
         "content": null,
         "children": [
           {
-            "id": "node_1h79r7ze53",
+            "id": "node_hts7trs0ug",
             "name": "课程发现 Hero",
             "role": "section",
             "rect": {
@@ -448,7 +448,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_wdfbl1cn8y",
+                "id": "node_ct51xdyl41",
                 "name": "课程页标题",
                 "role": "heading",
                 "rect": {
@@ -465,7 +465,7 @@
                 "children": []
               },
               {
-                "id": "node_nub64o8rl4",
+                "id": "node_mcahcnqa5a",
                 "name": "课程页说明",
                 "role": "description",
                 "rect": {
@@ -482,7 +482,7 @@
                 "children": []
               },
               {
-                "id": "node_5ugbxciwrq",
+                "id": "node_h7usi7f6eq",
                 "name": "课程搜索",
                 "role": "search",
                 "rect": {
@@ -507,7 +507,7 @@
             ]
           },
           {
-            "id": "node_lo1vbnvxh3",
+            "id": "node_unl838hny3",
             "name": "课程分类筛选",
             "role": "navigation",
             "rect": {
@@ -521,7 +521,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_jjooe8rb4v",
+                "id": "node_dll3g1p89b",
                 "name": "最新筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -547,7 +547,7 @@
                 "children": []
               },
               {
-                "id": "node_v5av1gvgnn",
+                "id": "node_yb70s367fq",
                 "name": "Agent筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -573,7 +573,7 @@
                 "children": []
               },
               {
-                "id": "node_azjqwe15wo",
+                "id": "node_zbposaueb0",
                 "name": "Vibe Coding筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -599,7 +599,7 @@
                 "children": []
               },
               {
-                "id": "node_oe0hz98ds7",
+                "id": "node_bd9t6vhjm7",
                 "name": "AIGC筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -625,7 +625,7 @@
                 "children": []
               },
               {
-                "id": "node_y53uryydnh",
+                "id": "node_4la7d4t37a",
                 "name": "办公筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -651,7 +651,7 @@
                 "children": []
               },
               {
-                "id": "node_8pyfr1qt6e",
+                "id": "node_8jem09xa0t",
                 "name": "学习筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -677,7 +677,7 @@
                 "children": []
               },
               {
-                "id": "node_bvzg4ak6l9",
+                "id": "node_7w3o0toqy4",
                 "name": "设计筛选",
                 "role": "navigation-item",
                 "rect": {
@@ -705,7 +705,7 @@
             ]
           },
           {
-            "id": "node_86y3t2kcvz",
+            "id": "node_4lapj8fqha",
             "name": "最新课程",
             "role": "section",
             "rect": {
@@ -719,7 +719,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_w885si2e61",
+                "id": "node_46p8usx0ha",
                 "name": "最新课程标题",
                 "role": "heading",
                 "rect": {
@@ -737,7 +737,7 @@
                 "children": []
               },
               {
-                "id": "node_hjpbiwolsr",
+                "id": "node_h628p2efhf",
                 "name": "查看更多",
                 "role": "cta",
                 "rect": {
@@ -763,7 +763,7 @@
                 "children": []
               },
               {
-                "id": "node_jc40ijrjry",
+                "id": "node_in7dy25d5x",
                 "name": "最新课程列表",
                 "role": "list",
                 "rect": {
@@ -777,7 +777,7 @@
                 "content": null,
                 "children": [
                   {
-                    "id": "node_y8yd76k1uo",
+                    "id": "node_wh1z6mknjg",
                     "name": "爱图表课程卡片",
                     "role": "card",
                     "rect": {
@@ -796,7 +796,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_gafofql053",
+                        "id": "node_f7y63kojgh",
                         "name": "爱图表封面",
                         "role": "media",
                         "rect": {
@@ -818,7 +818,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_7lzj1kza1y",
+                        "id": "node_3axwkmuxt2",
                         "name": "爱图表课程标题",
                         "role": "heading",
                         "rect": {
@@ -835,7 +835,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_4tf8pomd1i",
+                        "id": "node_r0b934qg9r",
                         "name": "爱图表讲师信息",
                         "role": "group",
                         "rect": {
@@ -849,7 +849,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_zk33lqgv2f",
+                            "id": "node_1mqq8i3151",
                             "name": "爱图表讲师头像",
                             "role": "image",
                             "rect": {
@@ -872,7 +872,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_zzcbr4uf1g",
+                            "id": "node_r4p8zdwaxq",
                             "name": "爱图表讲师文字",
                             "role": "group",
                             "rect": {
@@ -886,7 +886,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_dealqke9uk",
+                                "id": "node_jic76t43oq",
                                 "name": "爱图表讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -903,7 +903,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_ty33ztfh5h",
+                                "id": "node_hphnkmkqy0",
                                 "name": "爱图表讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -926,7 +926,7 @@
                     ]
                   },
                   {
-                    "id": "node_4miswot5zv",
+                    "id": "node_iqwefevwqn",
                     "name": "铱石 ASE 平台课程卡片",
                     "role": "card",
                     "rect": {
@@ -945,7 +945,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_s92vo79vl6",
+                        "id": "node_745hfqwt07",
                         "name": "铱石 ASE 平台封面",
                         "role": "media",
                         "rect": {
@@ -967,7 +967,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_sfipzuu4tm",
+                        "id": "node_cizkmz54wk",
                         "name": "铱石 ASE 平台课程标题",
                         "role": "heading",
                         "rect": {
@@ -984,7 +984,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_tp0acynwut",
+                        "id": "node_8rmbptslr1",
                         "name": "铱石 ASE 平台讲师信息",
                         "role": "group",
                         "rect": {
@@ -998,7 +998,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_5alikl5004",
+                            "id": "node_dcmcuja9mb",
                             "name": "铱石 ASE 平台讲师头像",
                             "role": "image",
                             "rect": {
@@ -1021,7 +1021,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_jq1kbmdliu",
+                            "id": "node_k7mhw6dqpd",
                             "name": "铱石 ASE 平台讲师文字",
                             "role": "group",
                             "rect": {
@@ -1035,7 +1035,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_s0715tfmpa",
+                                "id": "node_gy9giuikju",
                                 "name": "铱石 ASE 平台讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1052,7 +1052,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_lyix1kinc6",
+                                "id": "node_e1133ftra1",
                                 "name": "铱石 ASE 平台讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1075,7 +1075,7 @@
                     ]
                   },
                   {
-                    "id": "node_esp4yuw9ye",
+                    "id": "node_rya0e0k5wn",
                     "name": "百度秒哒课程卡片",
                     "role": "card",
                     "rect": {
@@ -1094,7 +1094,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_iwl7ywpiep",
+                        "id": "node_dleg8pnveu",
                         "name": "百度秒哒封面",
                         "role": "media",
                         "rect": {
@@ -1116,7 +1116,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_g8ocoxyifl",
+                        "id": "node_sjkukasyo9",
                         "name": "百度秒哒课程标题",
                         "role": "heading",
                         "rect": {
@@ -1133,7 +1133,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_qyz7jt1bay",
+                        "id": "node_51m3yteby2",
                         "name": "百度秒哒讲师信息",
                         "role": "group",
                         "rect": {
@@ -1147,7 +1147,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_3avk5nbl1d",
+                            "id": "node_jp3qot5qhl",
                             "name": "百度秒哒讲师头像",
                             "role": "image",
                             "rect": {
@@ -1170,7 +1170,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_q7cdnu1tn1",
+                            "id": "node_03ugyy9aab",
                             "name": "百度秒哒讲师文字",
                             "role": "group",
                             "rect": {
@@ -1184,7 +1184,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_5u91y5pyx3",
+                                "id": "node_41x8w1pdmm",
                                 "name": "百度秒哒讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1201,7 +1201,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_jydrt4srzv",
+                                "id": "node_ahrwl8f9n5",
                                 "name": "百度秒哒讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1224,7 +1224,7 @@
                     ]
                   },
                   {
-                    "id": "node_c7xdneaunu",
+                    "id": "node_4k5525lev3",
                     "name": "小微智能体课程卡片",
                     "role": "card",
                     "rect": {
@@ -1243,7 +1243,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_sms16l6foy",
+                        "id": "node_2u5hedqcex",
                         "name": "小微智能体封面",
                         "role": "media",
                         "rect": {
@@ -1265,7 +1265,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_847423zjqh",
+                        "id": "node_t8hnpqbk24",
                         "name": "小微智能体课程标题",
                         "role": "heading",
                         "rect": {
@@ -1282,7 +1282,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_iuvxwa6q6a",
+                        "id": "node_8ge00sn7xh",
                         "name": "小微智能体讲师信息",
                         "role": "group",
                         "rect": {
@@ -1296,7 +1296,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_7q8gotcejm",
+                            "id": "node_6c8n2buc2h",
                             "name": "小微智能体讲师头像",
                             "role": "image",
                             "rect": {
@@ -1319,7 +1319,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_1a63xqr8zq",
+                            "id": "node_c4gf57ccvl",
                             "name": "小微智能体讲师文字",
                             "role": "group",
                             "rect": {
@@ -1333,7 +1333,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_ctzhb5rl9s",
+                                "id": "node_q8hnj54w1g",
                                 "name": "小微智能体讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1350,7 +1350,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_4mbra5u3fs",
+                                "id": "node_1oye27h7vk",
                                 "name": "小微智能体讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1377,7 +1377,7 @@
             ]
           },
           {
-            "id": "node_o526iteonn",
+            "id": "node_8cucedl77q",
             "name": "Agent 课程",
             "role": "section",
             "rect": {
@@ -1391,7 +1391,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_fe6sddgk28",
+                "id": "node_ptb1eu5bjs",
                 "name": "Agent 课程标题",
                 "role": "heading",
                 "rect": {
@@ -1409,7 +1409,7 @@
                 "children": []
               },
               {
-                "id": "node_sv122p4u8j",
+                "id": "node_kwv30eadn5",
                 "name": "查看更多 Agent 课程",
                 "role": "cta",
                 "rect": {
@@ -1435,7 +1435,7 @@
                 "children": []
               },
               {
-                "id": "node_91a0ikqtbz",
+                "id": "node_1fhjz1zsn2",
                 "name": "Agent 课程列表",
                 "role": "list",
                 "rect": {
@@ -1449,7 +1449,7 @@
                 "content": null,
                 "children": [
                   {
-                    "id": "node_l0adtj3qck",
+                    "id": "node_jy5poid087",
                     "name": "智谱 Zwork课程卡片",
                     "role": "card",
                     "rect": {
@@ -1468,7 +1468,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_q305hn5p43",
+                        "id": "node_7sf6junq2q",
                         "name": "智谱 Zwork封面",
                         "role": "media",
                         "rect": {
@@ -1490,7 +1490,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_yjgkzlbr92",
+                        "id": "node_o36hh8mfq9",
                         "name": "智谱 Zwork课程标题",
                         "role": "heading",
                         "rect": {
@@ -1507,7 +1507,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_81tn89yscx",
+                        "id": "node_zr8h0fbnj5",
                         "name": "智谱 Zwork讲师信息",
                         "role": "group",
                         "rect": {
@@ -1521,7 +1521,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_kn6pkesqso",
+                            "id": "node_rvw1k1i4oh",
                             "name": "智谱 Zwork讲师头像",
                             "role": "image",
                             "rect": {
@@ -1544,7 +1544,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_86dj10150a",
+                            "id": "node_2trpmqkdc7",
                             "name": "智谱 Zwork讲师文字",
                             "role": "group",
                             "rect": {
@@ -1558,7 +1558,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_6t1sj2ohkl",
+                                "id": "node_fd53kxuat7",
                                 "name": "智谱 Zwork讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1575,7 +1575,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_saaciz9m02",
+                                "id": "node_70tuj9ty59",
                                 "name": "智谱 Zwork讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1598,7 +1598,7 @@
                     ]
                   },
                   {
-                    "id": "node_hwya80jk5h",
+                    "id": "node_aew2b0p1la",
                     "name": "小微智能体课程卡片",
                     "role": "card",
                     "rect": {
@@ -1617,7 +1617,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_bm4q78rrc3",
+                        "id": "node_1eefmakgit",
                         "name": "小微智能体封面",
                         "role": "media",
                         "rect": {
@@ -1639,7 +1639,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_pu8gjh3qlt",
+                        "id": "node_b95hk6vk8d",
                         "name": "小微智能体课程标题",
                         "role": "heading",
                         "rect": {
@@ -1656,7 +1656,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_ugtkwlzfss",
+                        "id": "node_fi6y33mim1",
                         "name": "小微智能体讲师信息",
                         "role": "group",
                         "rect": {
@@ -1670,7 +1670,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_qoocuitvii",
+                            "id": "node_27ez9dmot5",
                             "name": "小微智能体讲师头像",
                             "role": "image",
                             "rect": {
@@ -1693,7 +1693,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_m8elqvmyvw",
+                            "id": "node_h89hibnkpy",
                             "name": "小微智能体讲师文字",
                             "role": "group",
                             "rect": {
@@ -1707,7 +1707,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_mga2pwkjds",
+                                "id": "node_5pnji0cxig",
                                 "name": "小微智能体讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1724,7 +1724,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_5be0kcg5v5",
+                                "id": "node_vb7mpcqdch",
                                 "name": "小微智能体讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1747,7 +1747,7 @@
                     ]
                   },
                   {
-                    "id": "node_kynsl8v9qr",
+                    "id": "node_17zrajy8xl",
                     "name": "智律云课程卡片",
                     "role": "card",
                     "rect": {
@@ -1766,7 +1766,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_gezn4nyv0h",
+                        "id": "node_wusg5soum6",
                         "name": "智律云封面",
                         "role": "media",
                         "rect": {
@@ -1788,7 +1788,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_5l7v05zprt",
+                        "id": "node_izfr4uxurn",
                         "name": "智律云课程标题",
                         "role": "heading",
                         "rect": {
@@ -1805,7 +1805,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_xmggn9y2p1",
+                        "id": "node_arxi9ftq02",
                         "name": "智律云讲师信息",
                         "role": "group",
                         "rect": {
@@ -1819,7 +1819,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_lruqr0oq6x",
+                            "id": "node_0274p4cc3i",
                             "name": "智律云讲师头像",
                             "role": "image",
                             "rect": {
@@ -1842,7 +1842,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_cv83ai1ajl",
+                            "id": "node_llfq5b4c9t",
                             "name": "智律云讲师文字",
                             "role": "group",
                             "rect": {
@@ -1856,7 +1856,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_eg7hmodyrd",
+                                "id": "node_9wo2c5thk9",
                                 "name": "智律云讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -1873,7 +1873,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_nf29i3in91",
+                                "id": "node_2jkbq56jes",
                                 "name": "智律云讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -1896,7 +1896,7 @@
                     ]
                   },
                   {
-                    "id": "node_y633gxvjfk",
+                    "id": "node_olrlbx8ayd",
                     "name": "问小白 5Pro课程卡片",
                     "role": "card",
                     "rect": {
@@ -1915,7 +1915,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_9hw6imm7ev",
+                        "id": "node_vs5rh3zjz4",
                         "name": "问小白 5Pro封面",
                         "role": "media",
                         "rect": {
@@ -1937,7 +1937,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_hlrtqtky9s",
+                        "id": "node_369lxkzljl",
                         "name": "问小白 5Pro课程标题",
                         "role": "heading",
                         "rect": {
@@ -1954,7 +1954,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_aqntymq0xc",
+                        "id": "node_l7iw3oebo6",
                         "name": "问小白 5Pro讲师信息",
                         "role": "group",
                         "rect": {
@@ -1968,7 +1968,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_0wao3kxq26",
+                            "id": "node_fg1ykt47og",
                             "name": "问小白 5Pro讲师头像",
                             "role": "image",
                             "rect": {
@@ -1991,7 +1991,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_m4z4p5we8k",
+                            "id": "node_rzecq5g8q4",
                             "name": "问小白 5Pro讲师文字",
                             "role": "group",
                             "rect": {
@@ -2005,7 +2005,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_f02e3wtw71",
+                                "id": "node_ao52ua86sa",
                                 "name": "问小白 5Pro讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -2022,7 +2022,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_2lxkeqfmpt",
+                                "id": "node_q201pj0ry9",
                                 "name": "问小白 5Pro讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -2049,7 +2049,7 @@
             ]
           },
           {
-            "id": "node_2khx1a2gsi",
+            "id": "node_j0tfgwomlz",
             "name": "Vibe Coding 课程",
             "role": "section",
             "rect": {
@@ -2063,7 +2063,7 @@
             "content": null,
             "children": [
               {
-                "id": "node_l8pppvce23",
+                "id": "node_845jn7swaa",
                 "name": "Vibe Coding 课程标题",
                 "role": "heading",
                 "rect": {
@@ -2081,7 +2081,7 @@
                 "children": []
               },
               {
-                "id": "node_1ewrtbrvsz",
+                "id": "node_99jo7j9it2",
                 "name": "查看更多 Vibe Coding 课程",
                 "role": "cta",
                 "rect": {
@@ -2107,7 +2107,7 @@
                 "children": []
               },
               {
-                "id": "node_bu6drmwf2i",
+                "id": "node_04vpgnr8nj",
                 "name": "Vibe Coding 课程列表",
                 "role": "list",
                 "rect": {
@@ -2121,7 +2121,7 @@
                 "content": null,
                 "children": [
                   {
-                    "id": "node_lbqd7b06k5",
+                    "id": "node_m3ktt1vtxz",
                     "name": "百度秒哒课程卡片",
                     "role": "card",
                     "rect": {
@@ -2140,7 +2140,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_6635fphk24",
+                        "id": "node_45cf2xc1xi",
                         "name": "百度秒哒封面",
                         "role": "media",
                         "rect": {
@@ -2162,7 +2162,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_gn8agtlib0",
+                        "id": "node_p27to2e0j1",
                         "name": "百度秒哒课程标题",
                         "role": "heading",
                         "rect": {
@@ -2179,7 +2179,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_95clyes10w",
+                        "id": "node_1jt7hxgms1",
                         "name": "百度秒哒讲师信息",
                         "role": "group",
                         "rect": {
@@ -2193,7 +2193,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_4tucq7jeo6",
+                            "id": "node_se4v1i54mo",
                             "name": "百度秒哒讲师头像",
                             "role": "image",
                             "rect": {
@@ -2216,7 +2216,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_jo15fgunxr",
+                            "id": "node_mckm1fxks6",
                             "name": "百度秒哒讲师文字",
                             "role": "group",
                             "rect": {
@@ -2230,7 +2230,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_be6bmjyu5w",
+                                "id": "node_usibemc0xs",
                                 "name": "百度秒哒讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -2247,7 +2247,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_kswgbof8ku",
+                                "id": "node_flp8rn4zlb",
                                 "name": "百度秒哒讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -2270,7 +2270,7 @@
                     ]
                   },
                   {
-                    "id": "node_hfsaf4re7r",
+                    "id": "node_oyecg1n15v",
                     "name": "码上飞课程卡片",
                     "role": "card",
                     "rect": {
@@ -2289,7 +2289,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_q4xgfipfbf",
+                        "id": "node_bolyhbq2f5",
                         "name": "码上飞封面",
                         "role": "media",
                         "rect": {
@@ -2311,7 +2311,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_w4zut38ahg",
+                        "id": "node_g51nsdp62w",
                         "name": "码上飞课程标题",
                         "role": "heading",
                         "rect": {
@@ -2328,7 +2328,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_wf68fwqge8",
+                        "id": "node_wlzppll8me",
                         "name": "码上飞讲师信息",
                         "role": "group",
                         "rect": {
@@ -2342,7 +2342,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_4yh1ssoslh",
+                            "id": "node_o7qvdpnv3k",
                             "name": "码上飞讲师头像",
                             "role": "image",
                             "rect": {
@@ -2365,7 +2365,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_ug43m4q68m",
+                            "id": "node_v4crkipbsa",
                             "name": "码上飞讲师文字",
                             "role": "group",
                             "rect": {
@@ -2379,7 +2379,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_2k8jqk1pwz",
+                                "id": "node_5urk96izlr",
                                 "name": "码上飞讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -2396,7 +2396,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_nuxil4tcrp",
+                                "id": "node_4p7ru8oid0",
                                 "name": "码上飞讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -2419,7 +2419,7 @@
                     ]
                   },
                   {
-                    "id": "node_mlqcnyu59b",
+                    "id": "node_t6dkujcfl9",
                     "name": "铱石 ASE 平台课程卡片",
                     "role": "card",
                     "rect": {
@@ -2438,7 +2438,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_upnfjl6lv2",
+                        "id": "node_7cy9fr0ybq",
                         "name": "铱石 ASE 平台封面",
                         "role": "media",
                         "rect": {
@@ -2460,7 +2460,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_9rk8291g0t",
+                        "id": "node_vkjsyf2b95",
                         "name": "铱石 ASE 平台课程标题",
                         "role": "heading",
                         "rect": {
@@ -2477,7 +2477,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_ksp590hud4",
+                        "id": "node_7yoa2ttph3",
                         "name": "铱石 ASE 平台讲师信息",
                         "role": "group",
                         "rect": {
@@ -2491,7 +2491,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_r5eq64g00g",
+                            "id": "node_y9rvi5kxom",
                             "name": "铱石 ASE 平台讲师头像",
                             "role": "image",
                             "rect": {
@@ -2514,7 +2514,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_q91o3nydwp",
+                            "id": "node_xl8xjzagkw",
                             "name": "铱石 ASE 平台讲师文字",
                             "role": "group",
                             "rect": {
@@ -2528,7 +2528,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_arusm2j5aq",
+                                "id": "node_ep3bcd1clo",
                                 "name": "铱石 ASE 平台讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -2545,7 +2545,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_pjy0crj8hy",
+                                "id": "node_z9rr6tm4fa",
                                 "name": "铱石 ASE 平台讲师简介",
                                 "role": "description",
                                 "rect": {
@@ -2568,7 +2568,7 @@
                     ]
                   },
                   {
-                    "id": "node_6ezad9myi9",
+                    "id": "node_jmlce3vgzg",
                     "name": "MiniMax Token Plan课程卡片",
                     "role": "card",
                     "rect": {
@@ -2587,7 +2587,7 @@
                     "content": null,
                     "children": [
                       {
-                        "id": "node_atguiy4h9y",
+                        "id": "node_nc85x68eny",
                         "name": "MiniMax Token Plan封面",
                         "role": "media",
                         "rect": {
@@ -2609,7 +2609,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_akri72dhqi",
+                        "id": "node_t2tbi8nc26",
                         "name": "MiniMax Token Plan课程标题",
                         "role": "heading",
                         "rect": {
@@ -2626,7 +2626,7 @@
                         "children": []
                       },
                       {
-                        "id": "node_gfr034yk9k",
+                        "id": "node_9r389du9yo",
                         "name": "MiniMax Token Plan讲师信息",
                         "role": "group",
                         "rect": {
@@ -2640,7 +2640,7 @@
                         "content": null,
                         "children": [
                           {
-                            "id": "node_jh764w93t5",
+                            "id": "node_4vqyngm2lt",
                             "name": "MiniMax Token Plan讲师头像",
                             "role": "image",
                             "rect": {
@@ -2663,7 +2663,7 @@
                             "children": []
                           },
                           {
-                            "id": "node_gbbi1e2ua7",
+                            "id": "node_47ffc02dfj",
                             "name": "MiniMax Token Plan讲师文字",
                             "role": "group",
                             "rect": {
@@ -2677,7 +2677,7 @@
                             "content": null,
                             "children": [
                               {
-                                "id": "node_pi5io4li83",
+                                "id": "node_w5rz3x1xe3",
                                 "name": "MiniMax Token Plan讲师姓名",
                                 "role": "label",
                                 "rect": {
@@ -2694,7 +2694,7 @@
                                 "children": []
                               },
                               {
-                                "id": "node_1k65xbura8",
+                                "id": "node_pi2rfvvrff",
                                 "name": "MiniMax Token Plan讲师简介",
                                 "role": "description",
                                 "rect": {
