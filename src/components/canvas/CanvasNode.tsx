@@ -155,7 +155,8 @@ function CanvasNodeBase({
         unionRects(items.map((i) => i.origAbs)) ?? items[0].origAbs
 
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-      const startPan = viewport.edgeScroll.begin()
+      // 只记录起始 pan；真正拖拽越过阈值后再 enable 边缘滚动
+      const startPan = viewport.edgeScroll.begin(e.clientX, e.clientY)
 
       dragRef.current = {
         startX: e.clientX,
@@ -187,6 +188,9 @@ function CanvasNodeBase({
           drag.startPanY,
         )
         if (!drag.dirty && Math.abs(rawDx0) < 0.5 && Math.abs(rawDy0) < 0.5) return
+
+        // 确认拖拽后才开边缘滚动（防止 click 误推 pan）
+        if (!drag.dirty) viewport.edgeScroll.enable()
 
         // Alt-拖：越过阈值后复制并改拖副本
         if (drag.altAtDown && !drag.duplicated) {

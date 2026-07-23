@@ -1,6 +1,6 @@
 // ============================================================
 //  CanvasViewportContext —— pan/zoom 与边缘滚动共享
-//  拖拽时根据指针位置自动 pan，并把 pan 变化折算进 document 位移
+//  仅在确认拖拽（dirty）后启用边缘滚动；禁止 click 误触发
 // ============================================================
 import {
   createContext,
@@ -15,14 +15,20 @@ import {
 export interface ViewportState {
   zoom: number
   pan: { x: number; y: number }
-  setPan: (p: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void
+  setPan: (
+    p:
+      | { x: number; y: number }
+      | ((prev: { x: number; y: number }) => { x: number; y: number }),
+  ) => void
   containerRef: RefObject<HTMLDivElement | null>
 }
 
 interface EdgeScrollHandle {
-  /** 指针按下时记录起始 pan */
-  begin: () => { panX: number; panY: number }
-  /** 每帧根据指针位置做边缘滚动；返回当前 pan（用于折算 doc 位移） */
+  /** 记录起始 pan + 指针位置；不启动滚动（避免 click 误触发） */
+  begin: (clientX: number, clientY: number) => { panX: number; panY: number }
+  /** 确认进入拖拽后调用，才开始边缘滚动 rAF */
+  enable: () => void
+  /** 更新指针位置；若已 enable 则边缘滚动生效 */
   tick: (clientX: number, clientY: number) => { panX: number; panY: number }
   end: () => void
 }
@@ -45,8 +51,15 @@ interface CanvasViewportValue extends ViewportState {
 
 const CanvasViewportContext = createContext<CanvasViewportValue | null>(null)
 
-const EDGE_PX = 48
-const MAX_SPEED = 14 // screen px / frame
+const EDGE_PX = 40
+const MAX_SPEED = 10 // screen px / frame
+
+/** 边缘强度 0..1；指针在容器外时按满速 */
+function edgeStrength(dist: number, edge: number): number {
+  if (dist >= edge) return 0
+  // dist 可为负（在边缘外）→ 钳到满速
+  return Math.min(1, Math.max(0, 1 - dist / edge))
+}
 
 export function CanvasViewportProvider({
   zoom,
@@ -59,13 +72,18 @@ export function CanvasViewportProvider({
   panRef.current = pan
   const zoomRef = useRef(zoom)
   zoomRef.current = zoom
-  const scrollingRef = useRef(false)
+  const enabledRef = useRef(false)
   const rafRef = useRef(0)
   const lastClientRef = useRef({ x: 0, y: 0 })
 
   const edgeScroll = useMemo<EdgeScrollHandle>(() => {
+    const stopRaf = () => {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = 0
+    }
+
     const step = () => {
-      if (!scrollingRef.current) return
+      if (!enabledRef.current) return
       const el = containerRef.current
       if (!el) {
         rafRef.current = requestAnimationFrame(step)
@@ -73,16 +91,19 @@ export function CanvasViewportProvider({
       }
       const rect = el.getBoundingClientRect()
       const { x, y } = lastClientRef.current
-      let vx = 0
-      let vy = 0
+
+      // 未收到任何 tick 时 lastClient 可能仍是 0,0 — enable 前 begin 必须写入真实坐标
       const distL = x - rect.left
       const distR = rect.right - x
       const distT = y - rect.top
       const distB = rect.bottom - y
-      if (distL < EDGE_PX) vx = MAX_SPEED * (1 - distL / EDGE_PX)
-      else if (distR < EDGE_PX) vx = -MAX_SPEED * (1 - distR / EDGE_PX)
-      if (distT < EDGE_PX) vy = MAX_SPEED * (1 - distT / EDGE_PX)
-      else if (distB < EDGE_PX) vy = -MAX_SPEED * (1 - distB / EDGE_PX)
+
+      const vx =
+        MAX_SPEED * edgeStrength(distL, EDGE_PX) -
+        MAX_SPEED * edgeStrength(distR, EDGE_PX)
+      const vy =
+        MAX_SPEED * edgeStrength(distT, EDGE_PX) -
+        MAX_SPEED * edgeStrength(distB, EDGE_PX)
 
       if (vx !== 0 || vy !== 0) {
         const p = panRef.current
@@ -94,19 +115,26 @@ export function CanvasViewportProvider({
     }
 
     return {
-      begin: () => {
-        scrollingRef.current = true
-        cancelAnimationFrame(rafRef.current)
-        rafRef.current = requestAnimationFrame(step)
+      begin: (clientX, clientY) => {
+        // 只记录，不开 rAF
+        enabledRef.current = false
+        stopRaf()
+        lastClientRef.current = { x: clientX, y: clientY }
         return { panX: panRef.current.x, panY: panRef.current.y }
+      },
+      enable: () => {
+        if (enabledRef.current) return
+        enabledRef.current = true
+        stopRaf()
+        rafRef.current = requestAnimationFrame(step)
       },
       tick: (clientX, clientY) => {
         lastClientRef.current = { x: clientX, y: clientY }
         return { panX: panRef.current.x, panY: panRef.current.y }
       },
       end: () => {
-        scrollingRef.current = false
-        cancelAnimationFrame(rafRef.current)
+        enabledRef.current = false
+        stopRaf()
       },
     }
   }, [containerRef, setPan])
@@ -152,7 +180,6 @@ export function CanvasViewportProvider({
 export function useCanvasViewport(): CanvasViewportValue {
   const ctx = useContext(CanvasViewportContext)
   if (!ctx) {
-    // 无 provider 时退化（测试/孤立渲染）
     return {
       zoom: 1,
       pan: { x: 0, y: 0 },
@@ -160,6 +187,7 @@ export function useCanvasViewport(): CanvasViewportValue {
       containerRef: { current: null },
       edgeScroll: {
         begin: () => ({ panX: 0, panY: 0 }),
+        enable: () => {},
         tick: () => ({ panX: 0, panY: 0 }),
         end: () => {},
       },

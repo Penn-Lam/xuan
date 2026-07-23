@@ -83,9 +83,15 @@ export function CanvasEditor() {
   // pan/zoom 状态
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const panRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(
-    null,
-  )
+  /** 当前 pan 的 ref，供捕获阶段 pan 手势读取最新值 */
+  const panValueRef = useRef(pan)
+  panValueRef.current = pan
+  const panGestureRef = useRef<{
+    startX: number
+    startY: number
+    origX: number
+    origY: number
+  } | null>(null)
 
   // 工具与视图开关
   const [tool, setTool] = useState<DrawTool>("select")
@@ -111,37 +117,99 @@ export function CanvasEditor() {
   /** 刚完成框选时抑制 background click 清空 */
   const suppressClickRef = useRef(false)
 
-  // 滚轮缩放：以光标为不动点（ctrl/meta + wheel）
+  // 滚轮：⌘/Ctrl+滚轮缩放（光标为不动点）；普通滚轮/触控板双指 = pan
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return
       e.preventDefault()
 
-      const rect = el.getBoundingClientRect()
-      // 指针相对容器
-      const sx = e.clientX - rect.left
-      const sy = e.clientY - rect.top
-      const cx = rect.width / 2
-      const cy = rect.height / 2
+      // 缩放
+      if (e.ctrlKey || e.metaKey) {
+        const rect = el.getBoundingClientRect()
+        const sx = e.clientX - rect.left
+        const sy = e.clientY - rect.top
+        const cx = rect.width / 2
+        const cy = rect.height / 2
+        const delta = -e.deltaY * 0.001
+        setZoom((z0) => {
+          const z1 = Math.min(4, Math.max(0.1, z0 + delta))
+          if (z1 === z0) return z0
+          setPan((p0) => ({
+            x: sx - cx - (z1 * (sx - cx - p0.x)) / z0,
+            y: sy - cy - (z1 * (sy - cy - p0.y)) / z0,
+          }))
+          return z1
+        })
+        return
+      }
 
-      const delta = -e.deltaY * 0.001
-      setZoom((z0) => {
-        const z1 = Math.min(4, Math.max(0.1, z0 + delta))
-        if (z1 === z0) return z0
-        // 保持光标下内容点不动：
-        // sx = cx + pan.x + z * localX  →  pan' = sx - cx - z' * (sx - cx - pan) / z
-        setPan((p0) => ({
-          x: sx - cx - (z1 * (sx - cx - p0.x)) / z0,
-          y: sy - cy - (z1 * (sy - cy - p0.y)) / z0,
-        }))
-        return z1
-      })
+      // 平移视野（触控板双指 / 鼠标滚轮）
+      setPan((p0) => ({
+        x: p0.x - e.deltaX,
+        y: p0.y - e.deltaY,
+      }))
     }
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
   }, [])
+
+  // Space / 中键 / 右键 pan：捕获阶段，不被节点 stopPropagation 吞掉
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const isPanIntent = (e: PointerEvent) =>
+      e.button === 1 || e.button === 2 || spaceHeldRef.current
+
+    const onPointerDownCapture = (e: PointerEvent) => {
+      if (tool !== "select") return
+      // 工具条等 UI 不抢
+      const t = e.target as HTMLElement | null
+      if (t?.closest?.("[data-canvas-chrome]")) return
+      if (!isPanIntent(e)) return
+
+      e.preventDefault()
+      e.stopPropagation()
+      const p = panValueRef.current
+      panGestureRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: p.x,
+        origY: p.y,
+      }
+      el.setPointerCapture(e.pointerId)
+      setSpaceHeld((s) => s) // 触发 cursor 刷新；pan 中用 grab
+    }
+
+    const onPointerMoveCapture = (e: PointerEvent) => {
+      const g = panGestureRef.current
+      if (!g) return
+      e.preventDefault()
+      setPan({
+        x: g.origX + (e.clientX - g.startX),
+        y: g.origY + (e.clientY - g.startY),
+      })
+    }
+
+    const onPointerUpCapture = () => {
+      if (panGestureRef.current) {
+        panGestureRef.current = null
+        suppressClickRef.current = true
+      }
+    }
+
+    el.addEventListener("pointerdown", onPointerDownCapture, true)
+    el.addEventListener("pointermove", onPointerMoveCapture, true)
+    el.addEventListener("pointerup", onPointerUpCapture, true)
+    el.addEventListener("pointercancel", onPointerUpCapture, true)
+    return () => {
+      el.removeEventListener("pointerdown", onPointerDownCapture, true)
+      el.removeEventListener("pointermove", onPointerMoveCapture, true)
+      el.removeEventListener("pointerup", onPointerUpCapture, true)
+      el.removeEventListener("pointercancel", onPointerUpCapture, true)
+    }
+  }, [tool])
 
   // Space 跟踪（忽略输入框）
   useEffect(() => {
@@ -278,25 +346,11 @@ export function CanvasEditor() {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (tool !== "select") return
+      // pan 已在捕获阶段处理；此处只处理左键空白框选
+      if (e.button !== 0) return
+      if (spaceHeldRef.current || panGestureRef.current) return
       if (!isEmptyTarget(e.target)) return
 
-      const wantsPan =
-        e.button === 1 || e.button === 2 || spaceHeldRef.current || e.altKey
-
-      if (wantsPan) {
-        e.preventDefault()
-        panRef.current = {
-          startX: e.clientX,
-          startY: e.clientY,
-          origX: pan.x,
-          origY: pan.y,
-        }
-        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-        return
-      }
-
-      // 左键空白 → 框选（需 frame 坐标系）
-      if (e.button !== 0) return
       const frame = frameRef.current
       if (!frame) return
       const frameRect = frame.getBoundingClientRect()
@@ -313,19 +367,13 @@ export function CanvasEditor() {
       setMarquee(initial)
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     },
-    [pan, tool, zoom],
+    [tool, zoom],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      const p = panRef.current
-      if (p) {
-        setPan({
-          x: p.origX + (e.clientX - p.startX),
-          y: p.origY + (e.clientY - p.startY),
-        })
-        return
-      }
+      // pan 在捕获阶段已处理
+      if (panGestureRef.current) return
 
       const m = marqueeRef.current
       if (!m) return
@@ -337,7 +385,6 @@ export function CanvasEditor() {
       marqueeBoxRef.current = rect
       setMarquee(rect)
 
-      // 拖动过程中实时高亮命中
       const doc = useEditorStore.getState().document
       const hits = hitTestMarquee(doc, rect)
       if (m.additive) {
@@ -351,9 +398,6 @@ export function CanvasEditor() {
   )
 
   const handlePointerUp = useCallback(() => {
-    const wasPanning = panRef.current !== null
-    panRef.current = null
-
     const m = marqueeRef.current
     if (m) {
       const box = marqueeBoxRef.current
@@ -363,7 +407,6 @@ export function CanvasEditor() {
       suppressClickRef.current = true
 
       if (!box || (box.w < MARQUEE_MIN && box.h < MARQUEE_MIN)) {
-        // 单击空白：清空（additive 时保持）
         if (!m.additive) selectNode(null)
       } else {
         const doc = useEditorStore.getState().document
@@ -375,10 +418,7 @@ export function CanvasEditor() {
           selectNodes(hits)
         }
       }
-      return
     }
-
-    if (wasPanning) suppressClickRef.current = true
   }, [selectNode, selectNodes])
 
   const handleBackgroundClick = useCallback(() => {
@@ -446,7 +486,7 @@ export function CanvasEditor() {
   const cursor =
     tool === "rectangle"
       ? "crosshair"
-      : spaceHeld || panRef.current
+      : spaceHeld || panGestureRef.current
         ? "grab"
         : "default"
 
@@ -488,7 +528,10 @@ export function CanvasEditor() {
       }}
     >
       <TooltipProvider>
-        <div className="pointer-events-auto absolute left-3 top-3 z-10 flex flex-col gap-1">
+        <div
+          data-canvas-chrome="true"
+          className="pointer-events-auto absolute left-3 top-3 z-10 flex flex-col gap-1"
+        >
           <div className="flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-xs backdrop-blur">
             <ToolButton active={tool === "select"} onClick={() => setTool("select")} label={t("Select and move components")}>
               <Cursor />

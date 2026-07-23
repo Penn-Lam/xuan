@@ -208,7 +208,7 @@ export function SelectionOverlay({
       })
 
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-      const startPan = viewport.edgeScroll.begin()
+      const startPan = viewport.edgeScroll.begin(e.clientX, e.clientY)
 
       dragRef.current = {
         startX: e.clientX,
@@ -236,6 +236,7 @@ export function SelectionOverlay({
           drag.startPanY,
         )
         if (!drag.dirty && Math.abs(rawDx) < 0.5 && Math.abs(rawDy) < 0.5) return
+        if (!drag.dirty) viewport.edgeScroll.enable()
 
         let groupRect = computeResizedGroup(
           drag.groupOrig,
