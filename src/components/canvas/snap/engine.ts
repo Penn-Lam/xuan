@@ -5,7 +5,6 @@ import {
   snapResize,
   snapTranslate,
   thresholdFromZoom,
-  SNAP_THRESHOLD_SCREEN,
 } from "./boundsSnap"
 import type {
   SnapIndicator,
@@ -15,7 +14,7 @@ import type {
 } from "./types"
 import type { Rect } from "@/types/document"
 
-export { SNAP_THRESHOLD_SCREEN, thresholdFromZoom }
+export { thresholdFromZoom }
 
 export interface SnapSessionResult {
   /** 相对 raw dragDelta 额外需要施加的 nudge */

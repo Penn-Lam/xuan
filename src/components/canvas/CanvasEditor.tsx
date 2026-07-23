@@ -64,6 +64,12 @@ function normalizeRect(x1: number, y1: number, x2: number, y2: number): Rect {
   }
 }
 
+function isEmptyTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  if (!el) return false
+  return Boolean(el.dataset.bg || el.dataset.canvasRoot)
+}
+
 function useCanvasEditorState() {
   const { t } = useI18n()
   const document = useEditorStore((s) => s.document)
@@ -349,12 +355,6 @@ function useCanvasEditorState() {
       sealHistoryBatch()
     }
   }, [removeNodes, selectedIds, updateCanvasRects, scheduleNudgeSeal, sealHistoryBatch])
-
-  const isEmptyTarget = (target: EventTarget | null) => {
-    const el = target as HTMLElement | null
-    if (!el) return false
-    return Boolean(el.dataset.bg || el.dataset.canvasRoot)
-  }
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -790,4 +790,3 @@ function ToolButton({
     </Tooltip>
   )
 }
-

@@ -13,7 +13,6 @@ export {
   createSnapSession,
   buildSnapTargets,
   thresholdFromZoom,
-  SNAP_THRESHOLD_SCREEN,
   type SnapSession,
   type SnapSessionResult,
 } from "./engine"

@@ -25,7 +25,7 @@ import type {
   Vec2,
 } from "./types"
 
-export const SNAP_THRESHOLD_SCREEN = 8
+const SNAP_THRESHOLD_SCREEN = 8
 
 interface SnapPoint {
   id: string
@@ -92,33 +92,35 @@ export function collectGaps(targets: SnapTarget[]): {
     const start = byX[i]
     for (let j = i + 1; j < byX.length; j++) {
       const end = byX[j]
-      const startRight = start.bounds.x + start.bounds.w
-      const endLeft = end.bounds.x
+      const startBounds = start.bounds
+      const endBounds = end.bounds
+      const startRight = startBounds.x + startBounds.w
+      const endLeft = endBounds.x
       if (
         startRight < endLeft &&
         rangesOverlap(
-          start.bounds.y,
-          start.bounds.y + start.bounds.h,
-          end.bounds.y,
-          end.bounds.y + end.bounds.h,
+          startBounds.y,
+          startBounds.y + startBounds.h,
+          endBounds.y,
+          endBounds.y + endBounds.h,
         )
       ) {
         const bi = rangeIntersection(
-          start.bounds.y,
-          start.bounds.y + start.bounds.h,
-          end.bounds.y,
-          end.bounds.y + end.bounds.h,
+          startBounds.y,
+          startBounds.y + startBounds.h,
+          endBounds.y,
+          endBounds.y + endBounds.h,
         )!
         horizontal.push({
           startNode: start,
           endNode: end,
           startEdge: [
-            { x: startRight, y: start.bounds.y },
-            { x: startRight, y: start.bounds.y + start.bounds.h },
+            { x: startRight, y: startBounds.y },
+            { x: startRight, y: startBounds.y + startBounds.h },
           ],
           endEdge: [
-            { x: endLeft, y: end.bounds.y },
-            { x: endLeft, y: end.bounds.y + end.bounds.h },
+            { x: endLeft, y: endBounds.y },
+            { x: endLeft, y: endBounds.y + endBounds.h },
           ],
           length: endLeft - startRight,
           breadthIntersection: bi,
@@ -132,33 +134,35 @@ export function collectGaps(targets: SnapTarget[]): {
     const start = byY[i]
     for (let j = i + 1; j < byY.length; j++) {
       const end = byY[j]
-      const startBottom = start.bounds.y + start.bounds.h
-      const endTop = end.bounds.y
+      const startBounds = start.bounds
+      const endBounds = end.bounds
+      const startBottom = startBounds.y + startBounds.h
+      const endTop = endBounds.y
       if (
         startBottom < endTop &&
         rangesOverlap(
-          start.bounds.x,
-          start.bounds.x + start.bounds.w,
-          end.bounds.x,
-          end.bounds.x + end.bounds.w,
+          startBounds.x,
+          startBounds.x + startBounds.w,
+          endBounds.x,
+          endBounds.x + endBounds.w,
         )
       ) {
         const bi = rangeIntersection(
-          start.bounds.x,
-          start.bounds.x + start.bounds.w,
-          end.bounds.x,
-          end.bounds.x + end.bounds.w,
+          startBounds.x,
+          startBounds.x + startBounds.w,
+          endBounds.x,
+          endBounds.x + endBounds.w,
         )!
         vertical.push({
           startNode: start,
           endNode: end,
           startEdge: [
-            { x: start.bounds.x, y: startBottom },
-            { x: start.bounds.x + start.bounds.w, y: startBottom },
+            { x: startBounds.x, y: startBottom },
+            { x: startBounds.x + startBounds.w, y: startBottom },
           ],
           endEdge: [
-            { x: end.bounds.x, y: endTop },
-            { x: end.bounds.x + end.bounds.w, y: endTop },
+            { x: endBounds.x, y: endTop },
+            { x: endBounds.x + endBounds.w, y: endTop },
           ],
           length: endTop - startBottom,
           breadthIntersection: bi,

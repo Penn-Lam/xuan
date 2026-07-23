@@ -8,8 +8,6 @@ interface SnapOverlayProps {
   zoom: number
 }
 
-const SNAP_COLOR = "rgb(255, 62, 183)" // tldraw pink
-
 export function SnapOverlay({ zoom }: SnapOverlayProps) {
   const indicators = useSnapStore((s) => s.indicators)
   const z = Math.max(0.05, zoom)
@@ -69,7 +67,7 @@ function PointsIndicator({
   const l = 2.5 / zoom
 
   return (
-    <g stroke={SNAP_COLOR} strokeWidth={stroke} fill="none">
+    <g className="stroke-ring" strokeWidth={stroke} fill="none">
       <line x1={x1} y1={y1} x2={x2} y2={y2} />
       {points.map((p, i) => (
         <g key={i}>
@@ -111,7 +109,7 @@ function GapsIndicator({
   const mid = (edgeIx[0] + edgeIx[1]) / 2
 
   return (
-    <g stroke={SNAP_COLOR} strokeWidth={stroke} fill="none">
+    <g className="stroke-ring" strokeWidth={stroke} fill="none">
       {gaps.map((gap, i) => {
         if (horizontal) {
           const x0 = gap.startEdge[0].x

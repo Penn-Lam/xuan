@@ -11,7 +11,6 @@ export {
   buildSnapTargets,
   unionRects,
   thresholdFromZoom,
-  SNAP_THRESHOLD_SCREEN,
   type SnapSession,
   type SnapSessionResult,
   type SnapTarget,
@@ -38,8 +37,3 @@ export const useSnapStore = create<SnapState>((set) => ({
   setGuides: (guides) => set({ indicators: guides, guides }),
   clearGuides: () => set({ indicators: [], guides: [], measurements: [] }),
 }))
-
-export function snapToGrid(value: number, zoom: number): number {
-  const gridSize = Math.pow(2, Math.ceil(Math.log2(4 / Math.max(0.05, zoom))))
-  return Math.round(value / gridSize) * gridSize
-}
