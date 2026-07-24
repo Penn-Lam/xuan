@@ -21,6 +21,7 @@ import {
   lockedAxisFromDelta,
 } from "./selectionHandles"
 import { useCanvasViewport } from "./CanvasViewportContext"
+import { TextRenderer } from "./TextRenderer"
 
 interface CanvasNodeProps {
   nodeId: string
@@ -289,29 +290,42 @@ function CanvasNodeBase({
     shape === "ellipse"
       ? "rounded-full"
       : shape === "text"
-        ? "border-dashed bg-background"
+        ? "bg-background"
         : "rounded-md"
 
   return (
     <div
       className={cn(
-        "canvas-node absolute select-none border bg-secondary/70 transition-colors",
+        "canvas-node absolute select-none bg-secondary/70 transition-colors",
         !node.parentId && showPixelGrid && "canvas-grid-bg",
         shapeClass,
-        isSelected ? "border-ring/40" : "border-border",
       )}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
       data-canvas-root={!node.parentId ? "true" : undefined}
       onPointerDown={handlePointerDown}
     >
-      <div className="pointer-events-none absolute left-1.5 top-1 flex items-center gap-1">
-        {node.component && (
-          <Cube className="text-primary" width={12} height={12} />
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-0 border",
+          shape === "ellipse"
+            ? "rounded-full"
+            : shape === "text"
+              ? "border-dashed"
+              : "rounded-md",
+          isSelected ? "border-ring/40" : "border-border",
         )}
-        <span className="text-xs font-semibold text-foreground drop-shadow-sm">
-          {node.name}
-        </span>
-      </div>
+      />
+      <TextRenderer
+        role={node.role}
+        height={rect.h}
+        isEditing={isSelected && shape === "text"}
+        leading={node.component ? (
+          <Cube className="shrink-0 text-primary" width={12} height={12} />
+        ) : undefined}
+      >
+        {node.name}
+      </TextRenderer>
 
       {node.childrenIds.length > 0 && (
         <div className="relative h-full w-full overflow-visible">

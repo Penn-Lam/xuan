@@ -9,7 +9,7 @@
     "build": "bun run build:mcp && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "bun src/store/catalog.check.ts && bun src/store/agent-sync.check.ts && bun src/lib/design-tokens.check.ts && bun src/components/canvas/snap/engine.check.ts && bun plugins/xuan/tests/document-tools.check.mjs",
+    "test": "bun src/store/catalog.check.ts && bun src/store/agent-sync.check.ts && bun src/lib/design-tokens.check.ts && bun src/components/canvas/TextRenderer.check.ts && bun src/components/canvas/snap/engine.check.ts && bun src/model/export-svg.check.ts && bun plugins/xuan/tests/document-tools.check.mjs",
     "doctor": "npx react-doctor@latest"
   },
   "dependencies": {

@@ -345,7 +345,19 @@ export function SelectionOverlay({
       }}
       data-selection-overlay="true"
     >
-      <div className="absolute inset-0 border-2 border-ring" />
+      <svg
+        aria-hidden="true"
+        className="absolute inset-0 size-full overflow-visible"
+      >
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          className="fill-none stroke-ring"
+          strokeWidth="2"
+        />
+      </svg>
       <div className="absolute left-1/2 top-full mt-1 -translate-x-1/2 rounded-sm bg-ring px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-primary-foreground">
         {label}
       </div>
