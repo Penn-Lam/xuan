@@ -32,6 +32,7 @@ src/
 │   ├── default-document.json   # 默认模板（Operations Dashboard，导出格式）
 │   ├── materialize.ts          # ★ IA→Canvas 桥梁：自动放置未定位节点
 │   ├── serialize.ts            # 扁平→嵌套导出树（相对坐标→绝对坐标）
+│   ├── export-svg.ts           # ExportDoc→SVG 线框（嵌套 g + 相对 translate）
 │   └── deserialize.ts          # 嵌套→扁平导入（绝对→相对）
 ├── store/
 │   ├── useEditorStore.ts       # ★ Zustand store：document+pages+undo/redo+persist
@@ -52,7 +53,7 @@ src/
 唯一真相源。内部用扁平树（`nodes` map + parentId/childrenIds），导出用嵌套树（绝对坐标）。Zod schema 校验导出格式。
 
 ### model 层
-纯函数，无 React 依赖。`materialize/serialize/deserialize/factories` 都是 CLI 可直接复用的。这是「导出格式 = Agent 格式」的技术基础。
+纯函数，无 React 依赖。`materialize/serialize/export-svg/deserialize/factories` 都是 CLI 可直接复用的。这是「导出格式 = Agent 格式」的技术基础。SVG 导出走 `exportSvg(serializeDocument(doc))`，嵌套 `<g>` 保留树结构便于二次编辑。
 
 ### store
 Zustand + Immer + 手写 patch undo/redo + persist。persist 只存 `pages + activePageId`（会话态不持久化）。`History<T>`：`commit` / `apply`(live) / `recordTransition`。Canvas live batch 由 `updateCanvasRects({history:false})` + `sealHistoryBatch` 管理（方向键连击/拖拽共用）。

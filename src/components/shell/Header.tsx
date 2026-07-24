@@ -9,6 +9,7 @@ import {
   DownloadSimple,
   UploadSimple,
   BracketsCurly,
+  FileSvg,
   Sparkle,
   TreeStructure,
   FrameCorners,
@@ -21,6 +22,7 @@ import {
 import { toast } from "sonner"
 import { useEditorStore } from "@/store/useEditorStore"
 import { serializeDocument } from "@/model/serialize"
+import { exportSvg } from "@/model/export-svg"
 import { importFromJson } from "@/model/deserialize"
 import { Button } from "@/components/ui/button"
 import { buttonVariants } from "@/components/ui/button-variants"
@@ -53,6 +55,9 @@ export function Header() {
   const history = useEditorStore((s) => s.history)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const downloadSlug = () =>
+    document.meta.name.replace(/\s+/g, "-").toLowerCase() || "xuan-export"
+
   const handleExportJson = () => {
     try {
       const exported = serializeDocument(document)
@@ -62,10 +67,27 @@ export function Header() {
       const url = URL.createObjectURL(blob)
       const a = globalThis.document.createElement("a")
       a.href = url
-      a.download = `${document.meta.name.replace(/\s+/g, "-").toLowerCase()}.json`
+      a.download = `${downloadSlug()}.json`
       a.click()
       URL.revokeObjectURL(url)
       toast.success(t("Exported JSON"), { description: t("Copied to clipboard and downloaded") })
+    } catch (e) {
+      toast.error(t("Export failed"), { description: String(e) })
+    }
+  }
+
+  const handleExportSvg = () => {
+    try {
+      const svg = exportSvg(serializeDocument(document))
+      navigator.clipboard.writeText(svg)
+      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
+      const url = URL.createObjectURL(blob)
+      const a = globalThis.document.createElement("a")
+      a.href = url
+      a.download = `${downloadSlug()}.svg`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(t("Exported SVG"), { description: t("Copied to clipboard and downloaded") })
     } catch (e) {
       toast.error(t("Export failed"), { description: String(e) })
     }
@@ -186,6 +208,10 @@ export function Header() {
               <DropdownMenuItem onClick={handleExportJson}>
                 <BracketsCurly />
                 JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportSvg}>
+                <FileSvg />
+                SVG
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleCopyPrompt}>
                 <Sparkle />

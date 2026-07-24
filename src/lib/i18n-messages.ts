@@ -90,6 +90,7 @@ const zh: Record<string, string> = {
   Collapse: "折叠",
   "Document name": "文档名称",
   "Exported JSON": "JSON 已导出",
+  "Exported SVG": "SVG 已导出",
   "Copied to clipboard and downloaded": "已复制到剪贴板并下载",
   "Export failed": "导出失败",
   "Copied generation prompt": "生成提示词已复制",
