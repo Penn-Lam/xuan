@@ -1,0 +1,24 @@
+name: Shadscan
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shadscan-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: TheOrcDev/shadscan@main
+        with:
+          path: .
+          version: 0.2.0
+          fail-under: "90"
