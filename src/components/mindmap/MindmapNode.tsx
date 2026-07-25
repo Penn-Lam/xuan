@@ -7,6 +7,7 @@ import { memo, useEffect, useRef, useState } from "react"
 import { Handle, Position, type NodeProps } from "@xyflow/react"
 import { CaretDown, Cube } from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useEditorStore } from "@/store/useEditorStore"
 import { cn } from "@/lib/utils"
@@ -61,6 +62,7 @@ function MindmapNodeBase({ data, selected }: MindmapNodeProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={commitName}
+            aria-label="Rename node"
             onKeyDown={(e) => {
               if (e.key === "Enter") commitName()
               if (e.key === "Escape") setRenaming(null)
@@ -85,21 +87,22 @@ function MindmapNodeBase({ data, selected }: MindmapNodeProps) {
           {d.role}
         </Badge>
         {d.childCount > 0 && (
-          <button
+          <Button
             type="button"
-            className="flex h-4 w-4 items-center justify-center rounded-full border bg-background text-xs text-muted-foreground hover:bg-accent"
+            variant="outline"
+            size="icon-xs"
+            className="rounded-full text-muted-foreground"
             onClick={(e) => {
               e.stopPropagation()
               d.onToggleCollapse?.(d.nodeId)
             }}
             aria-label={t(d.collapsed ? "Expand" : "Collapse")}
-          >
-            <CaretDown
-              width={10}
-              height={10}
-              style={{ transform: d.collapsed ? "rotate(-90deg)" : "none" }}
-            />
-          </button>
+            title="Toggle children"
+            >
+              <CaretDown
+                style={{ transform: d.collapsed ? "rotate(-90deg)" : "none" }}
+              />
+            </Button>
         )}
       </div>
 

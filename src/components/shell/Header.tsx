@@ -27,6 +27,7 @@ import { importFromJson } from "@/model/deserialize"
 import { Button } from "@/components/ui/button"
 import { buttonVariants } from "@/components/ui/button-variants"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   DropdownMenu,
@@ -124,7 +125,7 @@ export function Header() {
   }
 
   return (
-    <header className="flex h-14 items-center gap-2 border-b bg-background px-4">
+    <header className="flex h-14 items-center gap-2 overflow-x-auto border-b bg-background px-4">
       {/* 左：页面切换 + 页面名称 */}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <img
@@ -139,11 +140,14 @@ export function Header() {
           className="hidden size-7 shrink-0 object-contain dark:block"
         />
         <PageMenu />
+        <Label htmlFor="document-name" className="sr-only">
+          {t("Document name")}
+        </Label>
         <Input
+          id="document-name"
           value={document.meta.name}
           onChange={(e) => setDocumentName(e.target.value)}
-          className="h-8 w-48 rounded-none border-0 bg-transparent px-1 shadow-none focus-visible:border-b focus-visible:border-ring focus-visible:ring-0 dark:bg-transparent"
-          aria-label={t("Document name")}
+          className="h-8 w-48 min-w-24 rounded-none border-0 bg-transparent px-1 shadow-none focus-visible:border-b focus-visible:border-ring focus-visible:ring-0 dark:bg-transparent"
         />
       </div>
 
@@ -169,6 +173,7 @@ export function Header() {
           onClick={undo}
           disabled={!history.canUndo()}
           aria-label={t("Undo")}
+          title="Undo"
         >
           <ArrowCounterClockwise />
         </Button>
@@ -178,14 +183,20 @@ export function Header() {
           onClick={redo}
           disabled={!history.canRedo()}
           aria-label={t("Redo")}
+          title="Redo"
         >
           <ArrowClockwise />
         </Button>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
-        <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
-          <UploadSimple />
+        <Button
+          variant="ghost"
+          size="sm"
+          title="Import"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <UploadSimple data-icon="inline-start" />
           {t("Import")}
         </Button>
         <input
@@ -193,6 +204,7 @@ export function Header() {
           type="file"
           accept=".json,application/json"
           className="hidden"
+          aria-label="Import JSON document"
           onChange={handleImportFile}
         />
 
@@ -225,16 +237,19 @@ export function Header() {
           <DropdownMenuTrigger
             className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
             aria-label={t("Language")}
+            title="Language"
           >
             <Translate />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {(["zh", "en"] as Locale[]).map((value) => (
-              <DropdownMenuItem key={value} onClick={() => setLocale(value)}>
-                <span className="w-4">{locale === value && <Check />}</span>
-                {t(value === "zh" ? "Chinese" : "English")}
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuGroup>
+              {(["zh", "en"] as Locale[]).map((value) => (
+                <DropdownMenuItem key={value} onClick={() => setLocale(value)}>
+                  <span className="w-4">{locale === value && <Check />}</span>
+                  {t(value === "zh" ? "Chinese" : "English")}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -242,21 +257,24 @@ export function Header() {
           <DropdownMenuTrigger
             className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
             aria-label={t("Theme")}
+            title="Theme"
           >
             {theme === "light" ? <Sun /> : theme === "dark" ? <Moon /> : <Desktop />}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {([
-              ["system", "System", Desktop],
-              ["light", "Light", Sun],
-              ["dark", "Dark", Moon],
-            ] as const).map(([value, label, Icon]) => (
-              <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
-                <Icon />
-                {t(label)}
-                <span className="ml-auto w-4">{theme === value && <Check />}</span>
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuGroup>
+              {([
+                ["system", "System", Desktop],
+                ["light", "Light", Sun],
+                ["dark", "Dark", Moon],
+              ] as const).map(([value, label, Icon]) => (
+                <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
+                  <Icon />
+                  {t(label)}
+                  <span className="ml-auto w-4">{theme === value && <Check />}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

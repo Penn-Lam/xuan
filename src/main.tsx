@@ -6,6 +6,8 @@ import { createRoot } from "react-dom/client"
 import { IconContext } from "@phosphor-icons/react"
 import { ThemeProvider } from "next-themes"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
+import { AppErrorBoundary } from "@/components/AppErrorBoundary"
 import { I18nProvider } from "@/lib/i18n"
 
 // Geist 字体（Vite 用 Fontsource variable 包，非 Next.js geist 包）
@@ -23,7 +25,10 @@ createRoot(document.getElementById("root")!).render(
       <I18nProvider>
         <IconContext.Provider value={{ weight: "light" }}>
           <TooltipProvider delay={300}>
-            <App />
+            <AppErrorBoundary>
+              <App />
+            </AppErrorBoundary>
+            <Toaster />
           </TooltipProvider>
         </IconContext.Provider>
       </I18nProvider>

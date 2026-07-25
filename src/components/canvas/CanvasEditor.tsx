@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useI18n } from "@/lib/i18n"
+import { isEditableTarget } from "@/lib/keyboard"
 
 type DrawTool = "select" | "rectangle"
 
@@ -124,9 +125,6 @@ function useCanvasEditorState() {
   } | null>(null)
   const marqueeBoxRef = useRef<Rect | null>(null)
   const [marquee, setMarquee] = useState<Rect | null>(null)
-  /** 刚完成框选时抑制 background click 清空 */
-  const suppressClickRef = useRef(false)
-
   // 滚轮：⌘/Ctrl+滚轮缩放（光标为不动点）；普通滚轮/触控板双指 = pan
   useEffect(() => {
     const el = containerRef.current
@@ -214,7 +212,6 @@ function useCanvasEditorState() {
     const onPointerUpCapture = () => {
       if (panGestureRef.current) {
         panGestureRef.current = null
-        suppressClickRef.current = true
       }
     }
 
@@ -232,17 +229,8 @@ function useCanvasEditorState() {
 
   // Space 跟踪（忽略输入框）
   useEffect(() => {
-    const isTypingTarget = (target: EventTarget | null) => {
-      const el = target as HTMLElement | null
-      if (!el) return false
-      return (
-        el.tagName === "INPUT" ||
-        el.tagName === "TEXTAREA" ||
-        el.isContentEditable
-      )
-    }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || e.repeat || isTypingTarget(e.target)) return
+      if (e.code !== "Space" || e.repeat || isEditableTarget(e.target)) return
       e.preventDefault()
       spaceHeldRef.current = true
       setSpaceHeld(true)
@@ -280,20 +268,10 @@ function useCanvasEditorState() {
   }, [sealHistoryBatch])
 
   useEffect(() => {
-    const isTypingTarget = (target: EventTarget | null) => {
-      const el = target as HTMLElement | null
-      if (!el) return false
-      return (
-        el.tagName === "INPUT" ||
-        el.tagName === "TEXTAREA" ||
-        el.isContentEditable
-      )
-    }
-
     const arrowKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"])
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (isTypingTarget(event.target)) return
+      if (isEditableTarget(event.target)) return
 
       if ((event.key === "Backspace" || event.key === "Delete") && selectedIds.length > 0) {
         // delete 走 commit，store 会自动 seal 未收口的微移 batch
@@ -417,7 +395,6 @@ function useCanvasEditorState() {
       marqueeRef.current = null
       marqueeBoxRef.current = null
       setMarquee(null)
-      suppressClickRef.current = true
 
       if (!box || (box.w < MARQUEE_MIN && box.h < MARQUEE_MIN)) {
         if (!m.additive) selectNode(null)
@@ -433,14 +410,6 @@ function useCanvasEditorState() {
       }
     }
   }, [selectNode, selectNodes])
-
-  const handleBackgroundClick = useCallback(() => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false
-      return
-    }
-    if (tool === "select") selectNode(null)
-  }, [selectNode, tool])
 
   // 绘制工具：在背景上拖拽创建子节点
   const drawRef = useRef<{ startX: number; startY: number } | null>(null)
@@ -530,7 +499,6 @@ function useCanvasEditorState() {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    handleBackgroundClick,
     handleDrawPointerDown,
     handleDrawPointerUp,
     cursor,
@@ -565,7 +533,6 @@ export function CanvasEditor() {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    handleBackgroundClick,
     handleDrawPointerDown,
     handleDrawPointerUp,
     cursor,
@@ -603,9 +570,8 @@ export function CanvasEditor() {
         // 右键用于 pan，抑制菜单
         if (tool === "select") e.preventDefault()
       }}
-      onClick={handleBackgroundClick}
       onKeyDown={(event) => {
-        if (event.key === "Escape") handleBackgroundClick()
+        if (event.key === "Escape") useEditorStore.getState().selectNode(null)
       }}
     >
       <TooltipProvider>
@@ -682,7 +648,6 @@ export function CanvasEditor() {
           data-bg="true"
           className="relative bg-background shadow-lg"
           style={{ width: viewport.width, height: viewport.height }}
-          onClick={(e) => e.stopPropagation()}
         >
           {rootCanvas && (
             <CanvasNode
@@ -727,6 +692,8 @@ export function CanvasEditor() {
         <Button
           variant="ghost"
           size="icon-xs"
+          aria-label={t("Zoom out")}
+          title="Zoom out"
           onClick={(e) => {
             e.stopPropagation()
             setZoom((z) => Math.max(0.1, z - 0.1))
@@ -738,6 +705,8 @@ export function CanvasEditor() {
         <Button
           variant="ghost"
           size="icon-xs"
+          aria-label={t("Zoom in")}
+          title="Zoom in"
           onClick={(e) => {
             e.stopPropagation()
             setZoom((z) => Math.min(4, z + 0.1))
@@ -775,6 +744,7 @@ function ToolButton({
               onClick()
             }}
             aria-label={label}
+            title="Canvas tool"
             aria-pressed={active}
             className={
               active

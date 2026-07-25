@@ -78,6 +78,7 @@ function renderSidebar(node: FlatNode, document: XuanDocument, t: Translate) {
               variant={index === 0 ? "secondary" : "ghost"}
               size="sm"
               className="w-full justify-start"
+              title="Preview navigation item"
             >
               <Icon data-icon="inline-start" />
               {item}
@@ -182,6 +183,7 @@ function renderPreview(node: FlatNode, document: XuanDocument, t: Translate) {
           />
         )}
         <Input
+          aria-label="Preview input"
           placeholder={textValue(semantic.placeholder ?? props.placeholder, t("Enter a value…"))}
           className={role === "search" ? "pl-8" : undefined}
         />
@@ -189,7 +191,12 @@ function renderPreview(node: FlatNode, document: XuanDocument, t: Translate) {
     )
   }
   if (ref === "Textarea") {
-    return <Textarea placeholder={textValue(props.placeholder, t("Enter details…"))} />
+    return (
+      <Textarea
+        aria-label="Preview textarea"
+        placeholder={textValue(props.placeholder, t("Enter details…"))}
+      />
+    )
   }
   if (ref === "Badge") {
     return <Badge variant="secondary">{textValue(semantic.text ?? semantic.label, node.name)}</Badge>

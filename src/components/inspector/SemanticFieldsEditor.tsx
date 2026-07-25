@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useId, useState } from "react"
 import { Plus, X } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -58,36 +59,44 @@ interface ValueEditorProps {
 }
 
 function ValueEditor({ definition, value, onChange, commitOnBlur, onEnter, ariaLabel }: ValueEditorProps) {
+  const controlId = useId()
+
   if (definition.options) {
     return (
-      <Select value={value} onValueChange={(next) => next && onChange(next)}>
-        <SelectTrigger size="sm" className="flex-1" aria-label={ariaLabel}>
-          <SelectValue placeholder={definition.placeholder ?? "Value"} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {definition.options.map((option) => (
-              <SelectItem key={option} value={option}>{option}</SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <>
+        <Label htmlFor={controlId} className="sr-only">{ariaLabel}</Label>
+        <Select value={value} onValueChange={(next) => next && onChange(next)}>
+          <SelectTrigger id={controlId} size="sm" className="flex-1">
+            <SelectValue placeholder={definition.placeholder ?? "Value"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {definition.options.map((option) => (
+                <SelectItem key={option} value={option}>{option}</SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </>
     )
   }
 
   return (
-    <Input
-      type={definition.type === "number" ? "number" : "text"}
-      placeholder={definition.placeholder}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") onEnter?.()
-      }}
-      className="h-7 flex-1 text-xs"
-      aria-label={ariaLabel}
-      {...(commitOnBlur
-        ? { defaultValue: value, onBlur: (event) => onChange(event.target.value) }
-        : { value, onChange: (event) => onChange(event.target.value) })}
-    />
+    <>
+      <Label htmlFor={controlId} className="sr-only">{ariaLabel}</Label>
+      <Input
+        id={controlId}
+        type={definition.type === "number" ? "number" : "text"}
+        placeholder={definition.placeholder}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") onEnter?.()
+        }}
+        className="h-7 flex-1 text-xs"
+        {...(commitOnBlur
+          ? { defaultValue: value, onBlur: (event) => onChange(event.target.value) }
+          : { value, onChange: (event) => onChange(event.target.value) })}
+      />
+    </>
   )
 }
 
@@ -151,11 +160,14 @@ export function SemanticFieldsEditor({
         ]
         return (
           <div key={key} className="flex items-center gap-1.5">
+            <Label htmlFor={`semantic-field-${key}`} className="sr-only">
+              {`${t(definition.label)} ${t(fieldKind)}`}
+            </Label>
             <Select value={key} onValueChange={(nextKey) => nextKey && renameField(key, nextKey)}>
               <SelectTrigger
+                id={`semantic-field-${key}`}
                 size="sm"
                 className="w-[42%]"
-                aria-label={`${t(definition.label)} ${t(fieldKind)}`}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -184,6 +196,7 @@ export function SemanticFieldsEditor({
               size="icon-sm"
               onClick={() => removeField(key)}
               aria-label={`${t("Remove")} ${t(definition.label)}`}
+              title="Remove field"
             >
               <X />
             </Button>
@@ -192,11 +205,14 @@ export function SemanticFieldsEditor({
       })}
 
       <div className="flex items-center gap-1.5">
+        <Label htmlFor="new-semantic-field" className="sr-only">
+          {`${t("Add")} ${t(fieldKind)}`}
+        </Label>
         <Select value={draftField} onValueChange={(field) => setDraftField(field ?? "")}>
           <SelectTrigger
+            id="new-semantic-field"
             size="sm"
             className="w-[42%]"
-            aria-label={`${t("Add")} ${t(fieldKind)}`}
           >
             <SelectValue placeholder={t("Add field…")} />
           </SelectTrigger>
@@ -223,6 +239,7 @@ export function SemanticFieldsEditor({
           onClick={addField}
           disabled={!draftField}
           aria-label={t("Add field")}
+          title="Add field"
         >
           <Plus />
         </Button>

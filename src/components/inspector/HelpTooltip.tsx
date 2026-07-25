@@ -1,4 +1,5 @@
 import { Info } from "@phosphor-icons/react"
+import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function HelpTooltip({ content }: { content: string }) {
@@ -6,14 +7,17 @@ export function HelpTooltip({ content }: { content: string }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <button
+          <Button
             type="button"
-            className="text-muted-foreground hover:text-foreground"
+            variant="ghost"
+            size="icon-xs"
+            className="text-muted-foreground"
             aria-label={content}
+            title="Help"
           />
         }
       >
-        <Info width={14} height={14} />
+        <Info />
       </TooltipTrigger>
       <TooltipContent side="top">{content}</TooltipContent>
     </Tooltip>

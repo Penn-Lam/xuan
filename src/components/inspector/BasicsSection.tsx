@@ -56,9 +56,11 @@ export function BasicsSection() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-muted-foreground">{t("Role")}</Label>
+          <Label htmlFor="insp-role" className="text-xs text-muted-foreground">
+            {t("Role")}
+          </Label>
           <Select value={node.role} onValueChange={(v) => { if (v) setRole(selectedId, v) }}>
-            <SelectTrigger className="h-8">
+            <SelectTrigger id="insp-role" className="h-8">
               <SelectValue>{t(node.role)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -74,20 +76,24 @@ export function BasicsSection() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-muted-foreground">{t("Shape")}</Label>
+          <Label htmlFor="insp-shape" className="text-xs text-muted-foreground">
+            {t("Shape")}
+          </Label>
           <Select
             value={canvas.shape}
             onValueChange={(v) =>
               updateCanvasData(selectedId, { shape: v as typeof canvas.shape })
             }
           >
-            <SelectTrigger className="h-8">
+            <SelectTrigger id="insp-shape" className="h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rectangle">{t("Rectangle")}</SelectItem>
-              <SelectItem value="ellipse">{t("Ellipse")}</SelectItem>
-              <SelectItem value="text">{t("Text")}</SelectItem>
+              <SelectGroup>
+                <SelectItem value="rectangle">{t("Rectangle")}</SelectItem>
+                <SelectItem value="ellipse">{t("Ellipse")}</SelectItem>
+                <SelectItem value="text">{t("Text")}</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -117,6 +123,7 @@ export function BasicsSection() {
                     )}
                   >
                     <Icon width={16} height={16} />
+                    <span className="sr-only">Page size: {t(p.label)}</span>
                   </button>
                 )
               })}

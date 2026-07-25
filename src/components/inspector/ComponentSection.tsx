@@ -45,7 +45,9 @@ export function ComponentSection() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-1">
-            <Label className="text-xs text-muted-foreground">{t("Component type")}</Label>
+            <Label htmlFor="component-type" className="text-xs text-muted-foreground">
+              {t("Component type")}
+            </Label>
             <HelpTooltip
               content={component
                 ? t(COMPONENT_CATALOG[component.ref]?.description ?? "Custom component")
@@ -54,7 +56,7 @@ export function ComponentSection() {
           </div>
           <div className="flex items-center gap-1.5">
             <Select value={component?.ref ?? ""} onValueChange={(ref) => ref && bindComponent(ref)}>
-              <SelectTrigger className="h-8 flex-1">
+              <SelectTrigger id="component-type" className="h-8 flex-1">
                 <SelectValue placeholder={t("Select a component…")}>
                   {component ? t(component.ref) : null}
                 </SelectValue>
@@ -75,6 +77,7 @@ export function ComponentSection() {
                 size="icon-sm"
                 onClick={() => setComponent(selectedId, null)}
                 aria-label={t("Unbind component")}
+                title="Unbind component"
               >
                 <X />
               </Button>
